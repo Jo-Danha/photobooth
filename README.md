@@ -1,0 +1,2 @@
+# photobooth
+laravel photobooth
