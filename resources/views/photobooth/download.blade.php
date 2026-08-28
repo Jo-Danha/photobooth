@@ -19,20 +19,35 @@
         <p class="text-xs text-slate-400 mt-1 mb-6">Order ID: {{ $session->order_id }}</p>
 
         <div class="bg-slate-900 p-3 rounded-2xl border border-slate-800 shadow-2xl mb-6 inline-block">
-            <img id="mobilePhoto" src="{{ asset($session->result_image_path) }}" alt="Photobooth" class="max-h-[55vh] rounded-lg mx-auto shadow-md">
+            <img id="mobilePhoto" src="/file/{{ $session->session_token }}" alt="Photobooth" class="max-h-[55vh] rounded-lg mx-auto shadow-md">
         </div>
 
         <div class="space-y-3">
-            <a id="btnManualDownload" href="{{ asset($session->result_image_path) }}" download="Photobooth_{{ $session->order_id }}.png" class="w-full py-4 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 text-white font-bold text-sm shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+            <a id="btnManualDownload" href="/file/{{ $session->session_token }}" download="Photobooth_{{ $session->order_id }}.png" class="w-full py-4 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 text-white font-bold text-sm shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
                 <i class="fa-solid fa-download"></i>
                 <span>Simpan Ulang ke Galeri HP</span>
             </a>
+
+            <p class="text-[11px] text-slate-500 -mt-1"><i class="fa-solid fa-hand-pointer"></i> Tip: Tekan lama pada foto di atas untuk menyimpan ke galeri.</p>
 
             @if(isset($session->metadata['gdrive_link']))
                 <a href="{{ $session->metadata['gdrive_link'] }}" target="_blank" class="w-full py-3.5 rounded-xl bg-emerald-950 border border-emerald-700 text-emerald-300 font-semibold text-xs flex items-center justify-center gap-2">
                     <i class="fa-brands fa-google-drive"></i>
                     <span>Buka File Asli di Google Drive</span>
                 </a>
+            @endif
+
+            @if(isset($setting) && $setting->enable_email)
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                    <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-envelope text-brand-400"></i> Kirim Foto ke Email
+                    </label>
+                    <div class="flex gap-2">
+                        <input type="email" id="emailInput" placeholder="nama@email.com" class="flex-1 bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:border-brand-500">
+                        <button id="btnSendEmail" class="px-4 py-2.5 rounded-lg bg-brand-600 text-white font-bold text-xs whitespace-nowrap">Kirim</button>
+                    </div>
+                    <p id="emailStatus" class="text-[11px] mt-2 hidden"></p>
+                </div>
             @endif
         </div>
     </div>
@@ -44,7 +59,7 @@
     <!-- SKRIP OTOMATIS DOWNLOAD KE HP SAAT DIBUKA -->
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const photoUrl = "{{ asset($session->result_image_path) }}";
+            const photoUrl = "/file/{{ $session->session_token }}";
             const filename = "Photobooth_{{ $session->order_id }}.png";
 
             const autoLink = document.createElement('a');
@@ -54,6 +69,47 @@
             autoLink.click();
             document.body.removeChild(autoLink);
         });
+
+        @if($setting->enable_email)
+            const btnSendEmail = document.getElementById('btnSendEmail');
+            const emailInput = document.getElementById('emailInput');
+            const emailStatus = document.getElementById('emailStatus');
+            const CSRF = "{{ csrf_token() }}";
+
+            function showEmailStatus(msg, ok) {
+                emailStatus.textContent = msg;
+                emailStatus.className = 'text-[11px] mt-2 ' + (ok ? 'text-emerald-400' : 'text-rose-400');
+                emailStatus.classList.remove('hidden');
+            }
+
+            if (btnSendEmail) {
+                btnSendEmail.addEventListener('click', async () => {
+                    const email = emailInput.value.trim();
+                    if (!email) { showEmailStatus('Masukkan alamat email.', false); return; }
+                    btnSendEmail.disabled = true;
+                    btnSendEmail.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    try {
+                        const res = await fetch("/email/{{ $session->session_token }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': CSRF,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ email, _token: CSRF })
+                        });
+                        const data = await res.json();
+                        showEmailStatus(data.message, data.success);
+                        if (data.success) emailInput.value = '';
+                    } catch (e) {
+                        showEmailStatus('Gagal menghubungi server.', false);
+                    } finally {
+                        btnSendEmail.disabled = false;
+                        btnSendEmail.textContent = 'Kirim';
+                    }
+                });
+            }
+        @endif
     </script>
 </body>
 </html>

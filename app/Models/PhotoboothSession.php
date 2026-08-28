@@ -24,6 +24,8 @@ class PhotoboothSession extends Model
         'session_expires_at',
         'result_image_path',
         'metadata',
+        'voucher_code',
+        'expires_at',
     ];
 
     protected $casts = [
@@ -31,8 +33,14 @@ class PhotoboothSession extends Model
         'duration_minutes' => 'integer',
         'session_started_at' => 'datetime',
         'session_expires_at' => 'datetime',
+        'expires_at' => 'datetime',
         'metadata' => 'array',
     ];
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at && Carbon::now()->greaterThan($this->expires_at);
+    }
 
     public function isSessionActive(): bool
     {

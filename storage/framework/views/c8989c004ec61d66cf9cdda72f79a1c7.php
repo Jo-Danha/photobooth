@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="id" data-default-lang="{{ $boothSetting->ui_language ?? 'id' }}">
+<html lang="id" data-default-lang="<?php echo e($boothSetting->ui_language ?? 'id'); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" href="{{ ($boothSetting && $boothSetting->favicon_path) ? asset($boothSetting->favicon_path) : asset('favicon.svg') }}">
-    <title>@yield('title', ($boothAppName ?? 'Photobooth Studio'))</title>
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <link rel="icon" href="<?php echo e(($boothSetting && $boothSetting->favicon_path) ? asset($boothSetting->favicon_path) : asset('favicon.svg')); ?>">
+    <title><?php echo $__env->yieldContent('title', ($boothAppName ?? 'Photobooth Studio')); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        const brandPalette = @json($brandPalette);
+        const brandPalette = <?php echo json_encode($brandPalette, 15, 512) ?>;
         tailwind.config = {
             theme: {
                 extend: {
@@ -24,22 +24,22 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="{{ asset('js/i18n.js') }}"></script>
+    <script src="<?php echo e(asset('js/i18n.js')); ?>"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
-    @yield('styles')
+    <?php echo $__env->yieldContent('styles'); ?>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
-    @if(!($hideChrome ?? false))
+    <?php if(!($hideChrome ?? false)): ?>
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <a href="{{ route('photobooth.index') }}" id="boothLogo" class="flex items-center gap-3">
+            <a href="<?php echo e(route('photobooth.index')); ?>" id="boothLogo" class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
                     <i class="fa-solid fa-camera-retro text-white text-lg"></i>
                 </div>
                 <div>
-                    <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-300 bg-clip-text text-transparent">{{ $boothAppName ?? 'PHOTOBOOTH.IO' }}</span>
+                    <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-300 bg-clip-text text-transparent"><?php echo e($boothAppName ?? 'PHOTOBOOTH.IO'); ?></span>
                     <span class="text-[10px] block text-slate-400 font-semibold tracking-wider uppercase">Self-Photo Studio</span>
                 </div>
             </a>
@@ -49,37 +49,37 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistem Siap
                 </span>
                 <button type="button" onclick="window.toggleBoothLang()" title="Ganti Bahasa" data-lang-label class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center justify-center text-xs font-bold">EN</button>
-                @if(isset($boothSetting) && !$boothSetting->is_lock_mode)
-                <a href="{{ route('admin.login') }}" title="Admin" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center justify-center">
+                <?php if(isset($boothSetting) && !$boothSetting->is_lock_mode): ?>
+                <a href="<?php echo e(route('admin.login')); ?>" title="Admin" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center justify-center">
                     <i class="fa-solid fa-gear"></i>
                 </a>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
     </header>
-    @endif
+    <?php endif; ?>
 
     <main class="flex-grow">
-        @yield('content')
+        <?php echo $__env->yieldContent('content'); ?>
     </main>
 
-    @if(!($hideChrome ?? false))
+    <?php if(!($hideChrome ?? false)): ?>
     <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500">
         <div class="max-w-6xl mx-auto px-4">
-            @php
+            <?php
                 $footerDefault = '© ' . date('Y') . ' ' . ($boothAppName ?? 'Photobooth Studio') . '. Ditenagai oleh Laravel & WebRTC Canvas.';
-            @endphp
-            <p>{!! nl2br(e($boothSetting->footer_text ?: $footerDefault)) !!}</p>
+            ?>
+            <p><?php echo nl2br(e($boothSetting->footer_text ?: $footerDefault)); ?></p>
         </div>
     </footer>
-    @endif
+    <?php endif; ?>
 
-    @yield('scripts')
+    <?php echo $__env->yieldContent('scripts'); ?>
 
-    @if(isset($boothSetting) && $boothSetting->is_lock_mode && !request()->routeIs('admin.*'))
+    <?php if(isset($boothSetting) && $boothSetting->is_lock_mode && !request()->routeIs('admin.*')): ?>
     <script>
         (function () {
-            const adminLogin = "{{ route('admin.login') }}";
+            const adminLogin = "<?php echo e(route('admin.login')); ?>";
 
             // 1. Paksa layar penuh (fullscreen) saat interaksi pertama
             function enterFullscreen() {
@@ -128,6 +128,6 @@
             }
         })();
     </script>
-    @endif
+    <?php endif; ?>
 </body>
-</html>
+</html><?php /**PATH D:\xampp\htdocs\photobooth\resources\views/layouts/app.blade.php ENDPATH**/ ?>

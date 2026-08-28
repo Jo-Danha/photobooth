@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Photobooth Studio Live - Ambil Foto & Edit'); ?>
 
-@section('title', 'Photobooth Studio Live - Ambil Foto & Edit')
-
-@section('styles')
+<?php $__env->startSection('styles'); ?>
 <style>
     @keyframes cameraFlash {
         0% { opacity: 0; }
@@ -18,29 +16,30 @@
     }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@php
+<?php
     $isEvent = $session->payment_method === 'FREE_EVENT_MODE';
-@endphp
+?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <!-- Top Bar: Timer Sesi -->
 <div class="bg-slate-900 border-b border-slate-800 sticky top-16 z-40 px-4 py-2.5">
     <div class="max-w-6xl mx-auto flex items-center justify-between gap-4">
         <div class="flex items-center gap-3">
             <span class="text-xs font-semibold text-slate-400 hidden sm:inline">Paket:</span>
             <span class="text-xs font-bold px-2.5 py-1 rounded bg-brand-950 text-brand-300 border border-brand-800/60">
-                {{ $session->package_name }}
+                <?php echo e($session->package_name); ?>
+
             </span>
         </div>
 
         <div class="flex items-center gap-2">
-            @if($setting->bg_music_path)
+            <?php if($setting->bg_music_path): ?>
             <button type="button" id="btnToggleMusic" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center justify-center" title="Musik Latar">
                 <i class="fa-solid fa-volume-high"></i>
             </button>
-            @endif
+            <?php endif; ?>
             <span class="text-xs text-slate-400 font-medium">Sisa Waktu:</span>
             <div id="sessionTimerBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950 border border-emerald-700/60 text-emerald-400 font-mono font-bold text-sm">
                 <i class="fa-regular fa-clock animate-pulse"></i>
@@ -54,9 +53,9 @@
     </div>
 </div>
 
-@if($setting->bg_music_path)
-<audio id="bgMusic" src="{{ asset($setting->bg_music_path) }}" loop preload="auto"></audio>
-@endif
+<?php if($setting->bg_music_path): ?>
+<audio id="bgMusic" src="<?php echo e(asset($setting->bg_music_path)); ?>" loop preload="auto"></audio>
+<?php endif; ?>
 
 <div class="max-w-6xl mx-auto px-4 py-6">
     <div id="flashOverlay" class="fixed inset-0 bg-white pointer-events-none z-50 opacity-0"></div>
@@ -146,7 +145,7 @@
                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider" data-i18n="studio.frame_color">1. Warna Bingkai</label>
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-slate-400">Custom:</span>
-                            <input type="color" id="frameColorCustom" value="{{ $setting->default_frame_color }}" {{ $setting->lock_frame_color ? 'disabled' : '' }} class="w-6 h-6 rounded border-0 cursor-pointer bg-transparent">
+                            <input type="color" id="frameColorCustom" value="<?php echo e($setting->default_frame_color); ?>" <?php echo e($setting->lock_frame_color ? 'disabled' : ''); ?> class="w-6 h-6 rounded border-0 cursor-pointer bg-transparent">
                         </div>
                     </div>
                     <div class="grid grid-cols-6 sm:grid-cols-9 gap-2">
@@ -235,13 +234,13 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5" data-i18n="studio.custom_text">Teks Kustom</label>
-                        <input type="text" id="customTextInput" value="{{ $setting->default_brand_text }}" {{ $setting->lock_brand_text ? 'disabled' : '' }} class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2.5 {{ $setting->lock_brand_text ? 'opacity-60 cursor-not-allowed' : '' }}">
+                        <input type="text" id="customTextInput" value="<?php echo e($setting->default_brand_text); ?>" <?php echo e($setting->lock_brand_text ? 'disabled' : ''); ?> class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2.5 <?php echo e($setting->lock_brand_text ? 'opacity-60 cursor-not-allowed' : ''); ?>">
                     </div>
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5" data-i18n="studio.date_stamp">Stempel Tanggal</label>
                         <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
                             <input type="checkbox" id="toggleDateStamp" checked class="rounded border-slate-700 text-brand-600">
-                            <span>Tampilkan Tanggal ({{ date('d M Y') }})</span>
+                            <span>Tampilkan Tanggal (<?php echo e(date('d M Y')); ?>)</span>
                         </label>
                         <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
                             <input type="checkbox" id="toggleTimeStamp" class="rounded border-slate-700 text-brand-600">
@@ -260,9 +259,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 <script>
 // Kiosk anti-salah-guna: blokir Back & Tab switching saat sesi foto
 history.pushState(null, '', location.href);
@@ -276,25 +275,25 @@ document.addEventListener('visibilitychange', () => {
 });
 </script>
 <script>
-    const layoutType = "{{ $session->layout_type }}";
-    const frameTheme = "{{ $frameTheme }}";
-    const customFrameUrl = @json($customFrameUrl);
-    const saveUrl = "{{ route('photobooth.studio.save', ['token' => $session->session_token]) }}";
+    const layoutType = "<?php echo e($session->layout_type); ?>";
+    const frameTheme = "<?php echo e($frameTheme); ?>";
+    const customFrameUrl = <?php echo json_encode($customFrameUrl, 15, 512) ?>;
+    const saveUrl = "<?php echo e(route('photobooth.studio.save', ['token' => $session->session_token])); ?>";
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const downloadUrl = "{{ $downloadUrl }}";
+    const downloadUrl = "<?php echo e($downloadUrl); ?>";
 
-    const isEventSession = {{ $isEvent ? 'true' : 'false' }};
-    const totalDurationSeconds = isEventSession ? 999999 : {{ $session->duration_minutes * 60 }};
+    const isEventSession = <?php echo e($isEvent ? 'true' : 'false'); ?>;
+    const totalDurationSeconds = isEventSession ? 999999 : <?php echo e($session->duration_minutes * 60); ?>;
     let remainingSeconds = totalDurationSeconds;
 
     // Pengaturan dari admin
-    const businessLogoUrl = @json($setting->business_logo_path ? asset($setting->business_logo_path) : null);
-    const logoPosition = "{{ $setting->logo_position ?? 'bottom-center' }}";
-    const enableCountdownSound = {{ $setting->enable_countdown_sound ? 'true' : 'false' }};
-    const greenscreenEnabled = {{ ($setting->enable_greenscreen && $setting->greenscreen_bg_path) ? 'true' : 'false' }};
-    const greenscreenBgUrl = @json($setting->greenscreen_bg_path ? asset($setting->greenscreen_bg_path) : null);
-    const bgMusicUrl = @json($setting->bg_music_path ? asset($setting->bg_music_path) : null);
-    const lockPhotoShape = {{ $setting->lock_photo_shape ? 'true' : 'false' }};
+    const businessLogoUrl = <?php echo json_encode($setting->business_logo_path ? asset($setting->business_logo_path) : null, 15, 512) ?>;
+    const logoPosition = "<?php echo e($setting->logo_position ?? 'bottom-center'); ?>";
+    const enableCountdownSound = <?php echo e($setting->enable_countdown_sound ? 'true' : 'false'); ?>;
+    const greenscreenEnabled = <?php echo e(($setting->enable_greenscreen && $setting->greenscreen_bg_path) ? 'true' : 'false'); ?>;
+    const greenscreenBgUrl = <?php echo json_encode($setting->greenscreen_bg_path ? asset($setting->greenscreen_bg_path) : null, 15, 512) ?>;
+    const bgMusicUrl = <?php echo json_encode($setting->bg_music_path ? asset($setting->bg_music_path) : null, 15, 512) ?>;
+    const lockPhotoShape = <?php echo e($setting->lock_photo_shape ? 'true' : 'false'); ?>;
 
     // Live theme overlay (dog/hearts/vintage dll) — tampil di viewfinder seperti photobooth-io
     (function() {
@@ -349,15 +348,15 @@ document.addEventListener('visibilitychange', () => {
 
     let capturedPhotos = [];
     let stream = null;
-    let selectedFrameColor = "{{ $setting->default_frame_color }}";
+    let selectedFrameColor = "<?php echo e($setting->default_frame_color); ?>";
     let selectedFilter = 'normal';
-    let selectedPhotoShape = "{{ $setting->default_photo_shape ?? 'none' }}";
+    let selectedPhotoShape = "<?php echo e($setting->default_photo_shape ?? 'none'); ?>";
     let activeStickers = [];
-    let customText = "{{ $setting->default_brand_text }}";
+    let customText = "<?php echo e($setting->default_brand_text); ?>";
     let showDateStamp = true;
     let showTimeStamp = false;
-    const lockFrameColor = {{ $setting->lock_frame_color ? 'true' : 'false' }};
-    const lockBrandText = {{ $setting->lock_brand_text ? 'true' : 'false' }};
+    const lockFrameColor = <?php echo e($setting->lock_frame_color ? 'true' : 'false'); ?>;
+    const lockBrandText = <?php echo e($setting->lock_brand_text ? 'true' : 'false'); ?>;
     let logoImg = null;
 
     // ============ TIMER ============
@@ -1030,4 +1029,6 @@ document.addEventListener('visibilitychange', () => {
 
     document.getElementById('btnSaveFinalPhoto').addEventListener('click', () => autoSaveAndFinish());
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\xampp\htdocs\photobooth\resources\views/photobooth/studio.blade.php ENDPATH**/ ?>

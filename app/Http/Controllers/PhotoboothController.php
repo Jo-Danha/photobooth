@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 use App\Models\PhotoboothSession;
 use App\Models\BoothSetting;
 use App\Models\CustomFrame;
 use App\Services\GoogleDriveService;
+use App\Services\QrisService;
+use App\Mail\PhotoMail;
 use Carbon\Carbon;
 
 class PhotoboothController extends Controller
@@ -16,53 +19,10 @@ class PhotoboothController extends Controller
     {
         $setting = BoothSetting::getActiveSettings();
 
-        $packages = [
-            [
-                'id' => 'strip_4',
-                'name' => 'Classic Strip (4 Foto)',
-                'description' => '4 Foto vertikal klasik gaya photobooth Korea/vintage',
-                'shots' => 4,
-                'duration' => 5,
-                'price' => 15000,
-                'popular' => true,
-            ],
-            [
-                'id' => 'strip_3',
-                'name' => 'Trio Strip (3 Foto)',
-                'description' => '3 Frame foto vertikal proporsional dan estetik',
-                'shots' => 3,
-                'duration' => 5,
-                'price' => 12000,
-                'popular' => false,
-            ],
-            [
-                'id' => 'strip_2',
-                'name' => 'Duo Strip (2 Foto)',
-                'description' => '2 Frame foto ekspresif ukuran besar',
-                'shots' => 2,
-                'duration' => 4,
-                'price' => 10000,
-                'popular' => false,
-            ],
-            [
-                'id' => 'grid_4',
-                'name' => 'Grid 2x2 (4 Foto)',
-                'description' => 'Layout kotak 4 foto modern untuk Instagram & cetak',
-                'shots' => 4,
-                'duration' => 7,
-                'price' => 20000,
-                'popular' => false,
-            ],
-            [
-                'id' => 'polaroid',
-                'name' => 'Polaroid Retro',
-                'description' => 'Format polaroid retro dengan ruang catatan di bawah',
-                'shots' => 1,
-                'duration' => 4,
-                'price' => 8000,
-                'popular' => false,
-            ],
-        ];
+        $packages = collect(config('photobooth.packages'))->map(function ($pkg) use ($setting) {
+            $pkg['price'] = $setting->getPriceForLayout($pkg['id']);
+            return $pkg;
+        });
 
         return view('photobooth.index', compact('packages', 'setting'));
     }
@@ -75,21 +35,44 @@ class PhotoboothController extends Controller
 
         $setting = BoothSetting::getActiveSettings();
 
-        $layoutMap = [
-            'strip_4' => ['name' => 'Classic Strip 4-Shots', 'price' => 15000, 'duration' => 5],
-            'strip_3' => ['name' => 'Trio Strip 3-Shots', 'price' => 12000, 'duration' => 5],
-            'strip_2' => ['name' => 'Duo Strip 2-Shots', 'price' => 10000, 'duration' => 4],
-            'grid_4'  => ['name' => 'Grid 2x2 Modern', 'price' => 20000, 'duration' => 7],
-            'polaroid'=> ['name' => 'Polaroid Retro', 'price' => 8000, 'duration' => 4],
-        ];
+        $layoutMap = [];
+        foreach (config('photobooth.packages') as $pkg) {
+            $layoutMap[$pkg['id']] = [
+                'name'     => $pkg['name'],
+                'price'    => $setting->getPriceForLayout($pkg['id']),
+                'duration' => $pkg['duration'],
+            ];
+        }
 
         $selected = $layoutMap[$request->layout_type] ?? $layoutMap['strip_4'];
         $sessionToken = Str::random(32);
         $orderId = 'PB-' . date('YmdHis') . '-' . strtoupper(Str::random(4));
 
+        // Mode Manual (Wedding) — gratis persis photobooth-io.cc/index.html, tanpa QRIS/nominal
+        if (($setting->booth_mode ?? 'mandiri') === 'manual') {
+            $now = Carbon::now();
+            $eventDuration = 60 * 24 * 7;
+            PhotoboothSession::create([
+                'session_token'      => $sessionToken,
+                'order_id'           => $orderId,
+                'package_name'       => $selected['name'],
+                'layout_type'        => $request->layout_type,
+                'amount'             => 0,
+                'payment_status'     => 'paid',
+                'payment_method'     => 'FREE_MANUAL_MODE',
+                'payment_qr_url'     => null,
+                'duration_minutes'   => $eventDuration,
+                'session_started_at' => $now,
+                'session_expires_at' => $now->copy()->addMinutes($eventDuration),
+            ]);
+            return redirect()->route('photobooth.studio', ['token' => $sessionToken]);
+        }
+
         // Jika pembayaran dinonaktifkan di backend (Mode Event/Rental Gratis)
         if (!$setting->is_payment_enabled) {
             $now = Carbon::now();
+            // Mode event: tanpa batas waktu (durasi sangat besar)
+            $eventDuration = 60 * 24 * 7; // 7 hari
             PhotoboothSession::create([
                 'session_token'      => $sessionToken,
                 'order_id'           => $orderId,
@@ -99,29 +82,36 @@ class PhotoboothController extends Controller
                 'payment_status'     => 'paid',
                 'payment_method'     => 'FREE_EVENT_MODE',
                 'payment_qr_url'     => null,
-                'duration_minutes'   => $selected['duration'],
+                'duration_minutes'   => $eventDuration,
+                'voucher_code'       => $request->filled('voucher_code') ? strtoupper($request->voucher_code) : null,
                 'session_started_at' => $now,
-                'session_expires_at' => $now->copy()->addMinutes($selected['duration']),
+                'session_expires_at' => $now->copy()->addMinutes($eventDuration),
             ]);
 
             return redirect()->route('photobooth.studio', ['token' => $sessionToken]);
         }
 
-        // Mode Pembayaran QRIS Aktif
-        $qrisData = "00020101021226580014ID.LINKAJA.WWW01189360091100223456780215{$orderId}5204581253033605802ID5914PHOTOBOOTH-IO6007JAKARTA62070703A016304ABCD";
-        $paymentQrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($qrisData);
+        // Tentukan metode pembayaran default (metode pertama yang diaktifkan admin)
+        $enabledMethods = $setting->payment_methods ?: ['qris'];
+        $defaultMethod = in_array('qris', array_map('strtolower', $enabledMethods)) ? 'QRIS' : strtoupper($enabledMethods[0]);
 
-        PhotoboothSession::create([
+        $session = PhotoboothSession::create([
             'session_token'    => $sessionToken,
             'order_id'         => $orderId,
             'package_name'     => $selected['name'],
             'layout_type'      => $request->layout_type,
             'amount'           => $selected['price'],
             'payment_status'   => 'pending',
-            'payment_method'   => 'QRIS',
-            'payment_qr_url'   => $paymentQrUrl,
+            'payment_method'   => $defaultMethod,
+            'payment_qr_url'   => null,
             'duration_minutes' => $selected['duration'],
         ]);
+
+        // Generate QRIS otomatis bila metode default adalah QRIS
+        if ($defaultMethod === 'QRIS') {
+            $qr = (new QrisService())->getQrImageUrl($session, $setting);
+            $session->update(['payment_qr_url' => $qr]);
+        }
 
         return redirect()->route('photobooth.checkout', ['token' => $sessionToken]);
     }
@@ -134,7 +124,76 @@ class PhotoboothController extends Controller
             return redirect()->route('photobooth.studio', ['token' => $token]);
         }
 
-        return view('photobooth.checkout', compact('session'));
+        $setting = BoothSetting::getActiveSettings();
+        $qrUrl = (new QrisService())->getQrImageUrl($session, $setting);
+        $methods = $setting->payment_methods ?: ['qris'];
+        $bankAccount = $setting->bank_account;
+
+        return view('photobooth.checkout', compact('session', 'qrUrl', 'methods', 'bankAccount'));
+    }
+
+    /**
+     * Pengunjung memilih metode pembayaran di halaman checkout.
+     * Memperbarui session agar laporan akurat, lalu regenerate QR bila QRIS.
+     */
+    public function selectPaymentMethod(Request $request, $token)
+    {
+        $session = PhotoboothSession::where('session_token', $token)->firstOrFail();
+        if ($session->payment_status === 'paid') {
+            return response()->json(['success' => true, 'redirect' => route('photobooth.studio', ['token' => $token])]);
+        }
+
+        $method = strtoupper($request->input('method', 'QRIS'));
+        $setting = BoothSetting::getActiveSettings();
+        $enabled = array_map('strtoupper', $setting->payment_methods ?: ['qris']);
+        if (!in_array($method, $enabled)) {
+            $method = 'QRIS';
+        }
+
+        $session->payment_method = $method;
+        if ($method === 'QRIS') {
+            $session->payment_qr_url = (new QrisService())->getQrImageUrl($session, $setting);
+        } else {
+            $session->payment_qr_url = null;
+        }
+        $session->save();
+
+        return response()->json([
+            'success' => true,
+            'qr_url'  => $session->payment_qr_url,
+            'method'  => $method,
+        ]);
+    }
+
+    /**
+     * Webhook dari PSP (Midtrans/Xendit) untuk konfirmasi pembayaran otomatis.
+     * Menandai session sebagai "paid" dan memulai sesi foto.
+     */
+    public function qrisWebhook(Request $request)
+    {
+        $orderId = $request->input('order_id')
+            ?? $request->input('transaction_id')
+            ?? ($request->input('transaction_details')['order_id'] ?? null);
+
+        if (!$orderId) {
+            return response()->json(['status' => 'ignored'], 200);
+        }
+
+        $session = PhotoboothSession::where('order_id', $orderId)->first();
+        if (!$session || $session->payment_status === 'paid') {
+            return response()->json(['status' => 'ok'], 200);
+        }
+
+        // Deteksi status dari berbagai PSP
+        $status = strtolower($request->input('transaction_status') ?? $request->input('status') ?? '');
+        $paid = in_array($status, ['settlement', 'capture', 'paid', 'success', 'completed']);
+
+        if ($paid) {
+            $session->startSession();
+            return response()->json(['status' => 'paid'], 200);
+        }
+
+        return response()->json(['status' => 'pending'], 200);
     }
 
     public function checkPaymentStatus($token)
@@ -177,9 +236,26 @@ class PhotoboothController extends Controller
             ->where('layout_type', $session->layout_type)
             ->get();
 
+        // Tema dekoratif untuk layout bergambar (sesuai pilihan di halaman awal)
+        $themedLayouts = ['hearts', 'dog', 'vintage', 'solace', 'classic', 'with_love', 'holidays'];
+        $frameTheme = in_array($session->layout_type, $themedLayouts) ? $session->layout_type : 'none';
+
+        // Ambil 1 frame PNG overlay yang cocok untuk di-composite ke canvas
+        $customFrameUrl = null;
+        $matchedFrame = $customFrames->first();
+        if ($matchedFrame) {
+            $customFrameUrl = asset($matchedFrame->frame_image_path);
+        }
+
         $remainingSeconds = $session->getRemainingSeconds();
 
-        return view('photobooth.studio', compact('session', 'setting', 'customFrames', 'remainingSeconds'));
+        // URL untuk QR code di dalam foto — arahkan ke GDrive jika sudah ada, atau /download/{token}
+        $downloadUrl = !empty($session->metadata['gdrive_download'])
+            ? $session->metadata['gdrive_download']
+            : route('photobooth.download', ['token' => $session->session_token]);
+
+        $hideChrome = true; // sembunyikan header/footer saat sesi foto (anti-salah-guna)
+        return view('photobooth.studio', compact('session', 'setting', 'customFrames', 'frameTheme', 'customFrameUrl', 'remainingSeconds', 'downloadUrl', 'hideChrome'));
     }
 
     public function checkRemainingTime($token)
@@ -227,6 +303,7 @@ class PhotoboothController extends Controller
         $session->update([
             'result_image_path' => 'photobooths/' . $filename,
             'metadata' => $metadata,
+            'expires_at' => Carbon::now()->addDays(3),
         ]);
 
         return response()->json([
@@ -239,6 +316,7 @@ class PhotoboothController extends Controller
     public function result($token)
     {
         $session = PhotoboothSession::where('session_token', $token)->firstOrFail();
+        abort_if($session->isExpired(), 404, 'Sesi foto telah kedaluwarsa.');
         $setting = BoothSetting::getActiveSettings();
 
         if (!empty($session->metadata['gdrive_download'])) {
@@ -261,7 +339,74 @@ class PhotoboothController extends Controller
     public function download($token)
     {
         $session = PhotoboothSession::where('session_token', $token)->firstOrFail();
+        abort_if($session->isExpired(), 404, 'Sesi foto telah kedaluwarsa.');
+        $setting = BoothSetting::getActiveSettings();
 
-        return view('photobooth.download', compact('session'));
+        return view('photobooth.download', compact('session', 'setting'));
+    }
+
+    // Serve file foto secara langsung (relative path -> bekerja di HP via domain publik)
+    public function downloadFile($token)
+    {
+        $session = PhotoboothSession::where('session_token', $token)->firstOrFail();
+        abort_if($session->isExpired(), 404, 'Sesi foto telah kedaluwarsa.');
+        $path = public_path($session->result_image_path);
+        abort_if(!file_exists($path), 404);
+
+        return response()->file($path, [
+            'Content-Type'  => 'image/png',
+            'Cache-Control' => 'no-store',
+        ]);
+    }
+
+    /**
+     * Kirim foto hasil ke email pengguna (Gmail/SMTP via Laravel Mail).
+     */
+    public function sendEmail(Request $request, $token)
+    {
+        $session = PhotoboothSession::where('session_token', $token)->firstOrFail();
+        $setting = BoothSetting::getActiveSettings();
+
+        if (!$setting->enable_email) {
+            return response()->json(['success' => false, 'message' => 'Fitur kirim email tidak diaktifkan.'], 403);
+        }
+        if ($session->isExpired()) {
+            return response()->json(['success' => false, 'message' => 'Sesi foto telah kedaluwarsa.'], 410);
+        }
+
+        $request->validate(['email' => 'required|email|max:120']);
+
+        $path = public_path($session->result_image_path);
+        if (!file_exists($path)) {
+            return response()->json(['success' => false, 'message' => 'File foto tidak ditemukan.'], 404);
+        }
+
+        try {
+            if ($setting->email_from_name) {
+                config(['mail.from.name' => $setting->email_from_name]);
+            }
+            Mail::to($request->input('email'))->send(new PhotoMail($path, $session->order_id, $setting->app_name));
+            return response()->json(['success' => true, 'message' => 'Foto berhasil dikirim ke ' . $request->input('email')]);
+        } catch (\Exception $e) {
+            \Log::error('Gagal mengirim email photobooth: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal mengirim email: ' . $e->getMessage()]);
+        }
+    }
+
+    public function gallery()
+    {
+        $setting = BoothSetting::getActiveSettings();
+
+        // Mode Mandiri = privasi, galeri publik disembunyikan (404). Admin tetap lihat via /admin/gallery.
+        if (($setting->booth_mode ?? 'mandiri') !== 'manual') {
+            abort(404);
+        }
+
+        $sessions = PhotoboothSession::whereNotNull('result_image_path')
+            ->orderBy('created_at', 'desc')
+            ->limit(60)
+            ->get();
+
+        return view('photobooth.gallery', compact('setting', 'sessions'));
     }
 }

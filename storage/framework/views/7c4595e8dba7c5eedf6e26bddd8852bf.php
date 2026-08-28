@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
-@section('title', 'Panel Pengaturan Booth - Admin')
 
-@section('content')
+<?php $__env->startSection('title', 'Panel Pengaturan Booth - Admin'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="max-w-6xl mx-auto px-4 py-8">
     <!-- Header & Logout -->
     <div class="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-800">
@@ -15,17 +15,17 @@
         </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('admin.reports') }}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 flex items-center gap-2 border border-slate-700 shadow">
+                <a href="<?php echo e(route('admin.reports')); ?>" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 flex items-center gap-2 border border-slate-700 shadow">
                     <i class="fa-solid fa-chart-line"></i> Laporan
                 </a>
-                <a href="{{ route('admin.gallery') }}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 flex items-center gap-2 border border-slate-700 shadow">
+                <a href="<?php echo e(route('admin.gallery')); ?>" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 flex items-center gap-2 border border-slate-700 shadow">
                     <i class="fa-solid fa-images"></i> Gallery
                 </a>
-                <a href="{{ route('photobooth.index') }}" target="_blank" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 flex items-center gap-2 border border-slate-700 shadow">
+                <a href="<?php echo e(route('photobooth.index')); ?>" target="_blank" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 flex items-center gap-2 border border-slate-700 shadow">
                     <i class="fa-solid fa-desktop"></i> Buka Layar Booth
                 </a>
-            <form action="{{ route('admin.logout') }}" method="POST">
-                @csrf
+            <form action="<?php echo e(route('admin.logout')); ?>" method="POST">
+                <?php echo csrf_field(); ?>
                 <button type="submit" class="px-4 py-2.5 rounded-xl bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-xs font-bold text-rose-300 flex items-center gap-2 shadow">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </button>
@@ -33,12 +33,12 @@
         </div>
     </div>
 
-    @if(session('success'))
+    <?php if(session('success')): ?>
     <div class="mb-6 p-4 rounded-xl bg-emerald-950 border border-emerald-700 text-emerald-300 text-xs font-semibold flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-base"></i>
-        <span>{{ session('success') }}</span>
+        <span><?php echo e(session('success')); ?></span>
     </div>
-    @endif
+    <?php endif; ?>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- KOLOM KIRI (2 Kolom): PENGATURAN UTAMA -->
@@ -51,24 +51,24 @@
                     <span>1. Status & Sistem Pembayaran (QRIS / Mode Event Gratis)</span>
                 </h2>
 
-                <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" name="camera_device_id" value="{{ $setting->camera_device_id }}">
-                    <input type="hidden" name="camera_brightness" value="{{ $setting->camera_brightness }}">
-                    <input type="hidden" name="camera_contrast" value="{{ $setting->camera_contrast }}">
-                    <input type="hidden" name="camera_iso" value="{{ $setting->camera_iso }}">
-                    <input type="hidden" name="camera_saturation" value="{{ $setting->camera_saturation }}">
-                    <input type="hidden" name="default_brand_text" value="{{ $setting->default_brand_text }}">
-                    <input type="hidden" name="default_frame_color" value="{{ $setting->default_frame_color }}">
-                    <input type="hidden" name="admin_username" value="{{ $setting->admin_username }}">
-                    <input type="hidden" name="admin_password" value="{{ $setting->admin_password }}">
-                    <input type="hidden" name="admin_pin" value="{{ $setting->admin_pin }}">
-                    <input type="hidden" name="google_drive_folder_id" value="{{ $setting->google_drive_folder_id }}">
-                    <input type="hidden" name="public_domain_url" value="{{ $setting->public_domain_url }}">
-                    <input type="hidden" name="app_name" value="{{ $setting->app_name }}">
-                    @if($setting->is_lock_mode) <input type="hidden" name="is_lock_mode" value="1"> @endif
-                    @if($setting->lock_brand_text) <input type="hidden" name="lock_brand_text" value="1"> @endif
-                    @if($setting->lock_frame_color) <input type="hidden" name="lock_frame_color" value="1"> @endif
+                <form action="<?php echo e(route('admin.settings.update')); ?>" method="POST" enctype="multipart/form-data">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="camera_device_id" value="<?php echo e($setting->camera_device_id); ?>">
+                    <input type="hidden" name="camera_brightness" value="<?php echo e($setting->camera_brightness); ?>">
+                    <input type="hidden" name="camera_contrast" value="<?php echo e($setting->camera_contrast); ?>">
+                    <input type="hidden" name="camera_iso" value="<?php echo e($setting->camera_iso); ?>">
+                    <input type="hidden" name="camera_saturation" value="<?php echo e($setting->camera_saturation); ?>">
+                    <input type="hidden" name="default_brand_text" value="<?php echo e($setting->default_brand_text); ?>">
+                    <input type="hidden" name="default_frame_color" value="<?php echo e($setting->default_frame_color); ?>">
+                    <input type="hidden" name="admin_username" value="<?php echo e($setting->admin_username); ?>">
+                    <input type="hidden" name="admin_password" value="<?php echo e($setting->admin_password); ?>">
+                    <input type="hidden" name="admin_pin" value="<?php echo e($setting->admin_pin); ?>">
+                    <input type="hidden" name="google_drive_folder_id" value="<?php echo e($setting->google_drive_folder_id); ?>">
+                    <input type="hidden" name="public_domain_url" value="<?php echo e($setting->public_domain_url); ?>">
+                    <input type="hidden" name="app_name" value="<?php echo e($setting->app_name); ?>">
+                    <?php if($setting->is_lock_mode): ?> <input type="hidden" name="is_lock_mode" value="1"> <?php endif; ?>
+                    <?php if($setting->lock_brand_text): ?> <input type="hidden" name="lock_brand_text" value="1"> <?php endif; ?>
+                    <?php if($setting->lock_frame_color): ?> <input type="hidden" name="lock_frame_color" value="1"> <?php endif; ?>
 
                     <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
@@ -77,8 +77,8 @@
                         </div>
 
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="hidden" name="is_payment_enabled" id="payEnabledHidden" value="{{ $setting->is_payment_enabled ? '1' : '0' }}">
-                            <input type="checkbox" id="payEnabledToggle" {{ $setting->is_payment_enabled ? 'checked' : '' }} class="sr-only peer" onchange="document.getElementById('payEnabledHidden').value=this.checked?'1':'0'; this.form.submit()">
+                            <input type="hidden" name="is_payment_enabled" id="payEnabledHidden" value="<?php echo e($setting->is_payment_enabled ? '1' : '0'); ?>">
+                            <input type="checkbox" id="payEnabledToggle" <?php echo e($setting->is_payment_enabled ? 'checked' : ''); ?> class="sr-only peer" onchange="document.getElementById('payEnabledHidden').value=this.checked?'1':'0'; this.form.submit()">
                             <div class="w-14 h-7 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-600"></div>
                         </label>
                     </div>
@@ -87,17 +87,17 @@
                     <div class="mt-4 p-4 rounded-xl border border-slate-800 bg-slate-950">
                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-3">Metode Pembayaran yang Tersedia</label>
                         <div class="flex flex-wrap gap-3">
-                            @php $pm = $setting->payment_methods ?: ['qris']; @endphp
+                            <?php $pm = $setting->payment_methods ?: ['qris']; ?>
                             <label class="flex items-center gap-2 text-xs text-slate-200 cursor-pointer bg-slate-900 rounded-lg px-3 py-2 border border-slate-800">
-                                <input type="checkbox" name="payment_methods[]" value="qris" {{ in_array('qris', $pm) ? 'checked' : '' }} class="rounded border-slate-700 text-brand-600">
+                                <input type="checkbox" name="payment_methods[]" value="qris" <?php echo e(in_array('qris', $pm) ? 'checked' : ''); ?> class="rounded border-slate-700 text-brand-600">
                                 <i class="fa-solid fa-qrcode text-brand-400"></i> QRIS
                             </label>
                             <label class="flex items-center gap-2 text-xs text-slate-200 cursor-pointer bg-slate-900 rounded-lg px-3 py-2 border border-slate-800">
-                                <input type="checkbox" name="payment_methods[]" value="cash" {{ in_array('cash', $pm) ? 'checked' : '' }} class="rounded border-slate-700 text-brand-600">
+                                <input type="checkbox" name="payment_methods[]" value="cash" <?php echo e(in_array('cash', $pm) ? 'checked' : ''); ?> class="rounded border-slate-700 text-brand-600">
                                 <i class="fa-solid fa-money-bill-wave text-emerald-400"></i> Tunai
                             </label>
                             <label class="flex items-center gap-2 text-xs text-slate-200 cursor-pointer bg-slate-900 rounded-lg px-3 py-2 border border-slate-800">
-                                <input type="checkbox" name="payment_methods[]" value="transfer" {{ in_array('transfer', $pm) ? 'checked' : '' }} class="rounded border-slate-700 text-brand-600">
+                                <input type="checkbox" name="payment_methods[]" value="transfer" <?php echo e(in_array('transfer', $pm) ? 'checked' : ''); ?> class="rounded border-slate-700 text-brand-600">
                                 <i class="fa-solid fa-building-columns text-indigo-400"></i> Transfer Bank
                             </label>
                         </div>
@@ -110,14 +110,14 @@
                             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">Sumber QRIS Pembayaran</label>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <label class="flex items-start gap-3 text-xs text-slate-300 cursor-pointer bg-slate-900 rounded-lg p-3 border border-slate-800">
-                                    <input type="radio" name="qris_mode" value="upload" {{ ($setting->qris_mode ?? 'upload') == 'upload' ? 'checked' : '' }} class="mt-0.5 rounded border-slate-700 text-brand-600">
+                                    <input type="radio" name="qris_mode" value="upload" <?php echo e(($setting->qris_mode ?? 'upload') == 'upload' ? 'checked' : ''); ?> class="mt-0.5 rounded border-slate-700 text-brand-600">
                                     <div>
                                         <span class="font-bold text-white block">Upload Gambar QRIS</span>
                                         <span class="text-slate-500 text-[11px]">Pakai screenshot QRIS statis dari bank/e-wallet Anda.</span>
                                     </div>
                                 </label>
                                 <label class="flex items-start gap-3 text-xs text-slate-300 cursor-pointer bg-slate-900 rounded-lg p-3 border border-slate-800">
-                                    <input type="radio" name="qris_mode" value="dynamic" {{ $setting->qris_mode == 'dynamic' ? 'checked' : '' }} class="mt-0.5 rounded border-slate-700 text-brand-600">
+                                    <input type="radio" name="qris_mode" value="dynamic" <?php echo e($setting->qris_mode == 'dynamic' ? 'checked' : ''); ?> class="mt-0.5 rounded border-slate-700 text-brand-600">
                                     <div>
                                         <span class="font-bold text-white block">QRIS Dinamis (Otomatis)</span>
                                         <span class="text-slate-500 text-[11px]">Generate otomatis berdasar nominal & QRIS string Anda (REAL & scannable).</span>
@@ -128,7 +128,7 @@
 
                         <div>
                             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1">Raw QRIS String (Mode Dinamis)</label>
-                            <textarea name="qris_merchant_string" rows="2" placeholder="Tempel QRIS string dari aplikasi bank/e-wallet Anda (diawali 000201010212...)" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-[11px] font-mono rounded-lg px-3 py-2 focus:border-brand-500">{{ $setting->qris_merchant_string }}</textarea>
+                            <textarea name="qris_merchant_string" rows="2" placeholder="Tempel QRIS string dari aplikasi bank/e-wallet Anda (diawali 000201010212...)" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-[11px] font-mono rounded-lg px-3 py-2 focus:border-brand-500"><?php echo e($setting->qris_merchant_string); ?></textarea>
                             <span class="text-[10px] text-slate-500 mt-1 block">Didapat dengan scan QRIS Anda lalu copy teksnya. Sistem akan menyisipkan nominal & membuat QR baru setiap transaksi.</span>
                         </div>
 
@@ -136,18 +136,18 @@
                             <div>
                                 <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1">PSP (Opsional)</label>
                                 <select name="qris_provider" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-2">
-                                    <option value="" {{ !$setting->qris_provider ? 'selected' : '' }}>Tanpa PSP</option>
-                                    <option value="midtrans" {{ $setting->qris_provider == 'midtrans' ? 'selected' : '' }}>Midtrans</option>
-                                    <option value="xendit" {{ $setting->qris_provider == 'xendit' ? 'selected' : '' }}>Xendit</option>
+                                    <option value="" <?php echo e(!$setting->qris_provider ? 'selected' : ''); ?>>Tanpa PSP</option>
+                                    <option value="midtrans" <?php echo e($setting->qris_provider == 'midtrans' ? 'selected' : ''); ?>>Midtrans</option>
+                                    <option value="xendit" <?php echo e($setting->qris_provider == 'xendit' ? 'selected' : ''); ?>>Xendit</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1">API Key PSP</label>
-                                <input type="text" name="qris_api_key" value="{{ $setting->qris_api_key }}" placeholder="Server Key / API Key" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-2 font-mono">
+                                <input type="text" name="qris_api_key" value="<?php echo e($setting->qris_api_key); ?>" placeholder="Server Key / API Key" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-2 font-mono">
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1">Merchant ID</label>
-                                <input type="text" name="qris_merchant_id" value="{{ $setting->qris_merchant_id }}" placeholder="Opsional" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-2">
+                                <input type="text" name="qris_merchant_id" value="<?php echo e($setting->qris_merchant_id); ?>" placeholder="Opsional" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-2">
                             </div>
                         </div>
                         <span class="text-[10px] text-slate-500 block">Bila PSP diisi, status pembayaran otomatis terkonfirmasi via webhook (butuh pemasangan webhook di akun PSP ke <code>/webhook/payment/midtrans</code> &amp; <code>/webhook/payment/qris</code>).</span>
@@ -156,7 +156,7 @@
                     <!-- Info Rekening (Tunai/Transfer) -->
                     <div class="mt-4 p-4 rounded-xl border border-slate-800 bg-slate-950">
                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1">Info Rekening / Tunai (untuk metode Transfer & Tunai)</label>
-                        <textarea name="bank_account" rows="2" placeholder="Misal: BCA 1234567890 a.n. Photobooth Anda | Tunai ke operator booth" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:border-brand-500">{{ $setting->bank_account }}</textarea>
+                        <textarea name="bank_account" rows="2" placeholder="Misal: BCA 1234567890 a.n. Photobooth Anda | Tunai ke operator booth" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:border-brand-500"><?php echo e($setting->bank_account); ?></textarea>
                     </div>
 
                     <!-- Upload QRIS Resmi (Mode Upload) -->
@@ -164,11 +164,11 @@
                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">Upload Gambar QRIS (Mode Upload)</label>
                         <div class="flex flex-wrap items-center gap-4">
                             <div class="shrink-0">
-                                @if($setting->qris_image_path)
-                                    <img src="{{ asset($setting->qris_image_path) }}" alt="QRIS" class="w-28 h-28 object-contain bg-white rounded-lg border border-slate-700 p-1">
-                                @else
+                                <?php if($setting->qris_image_path): ?>
+                                    <img src="<?php echo e(asset($setting->qris_image_path)); ?>" alt="QRIS" class="w-28 h-28 object-contain bg-white rounded-lg border border-slate-700 p-1">
+                                <?php else: ?>
                                     <div class="w-28 h-28 flex items-center justify-center bg-slate-900 rounded-lg border border-dashed border-slate-700 text-slate-600 text-xs text-center p-2">Belum ada QRIS</div>
-                                @endif
+                                <?php endif; ?>
                             </div>
                             <div class="flex-1 min-w-[200px]">
                                 <input type="file" name="qris_image" accept="image/png,image/jpg,image/jpeg,image/webp" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700">
@@ -181,15 +181,15 @@
                     <div class="mt-4 p-4 rounded-xl border border-slate-800 bg-slate-950">
                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-3">Nominal Harga per Template (Rp)</label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            @foreach($packages as $pkg)
+                            <?php $__currentLoopData = $packages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pkg): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="flex items-center justify-between gap-2 bg-slate-900 rounded-lg px-3 py-2 border border-slate-800">
-                                <span class="text-xs text-slate-300 truncate">{{ $pkg['name'] }}</span>
+                                <span class="text-xs text-slate-300 truncate"><?php echo e($pkg['name']); ?></span>
                                 <div class="flex items-center gap-1">
                                     <span class="text-xs text-slate-500">Rp</span>
-                                    <input type="number" min="0" step="500" name="prices[{{ $pkg['id'] }}]" value="{{ $setting->getPriceForLayout($pkg['id']) }}" class="w-24 bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-1.5 text-right focus:border-brand-500">
+                                    <input type="number" min="0" step="500" name="prices[<?php echo e($pkg['id']); ?>]" value="<?php echo e($setting->getPriceForLayout($pkg['id'])); ?>" class="w-24 bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-1.5 text-right focus:border-brand-500">
                                 </div>
                             </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                     </div>
 
@@ -211,51 +211,51 @@
                     Foto hasil otomatis di-<b>upload ke Google Drive kamu sendiri (My Drive)</b> lalu QR di layar hasil & di dalam foto berisi <b>link unduhan langsung</b> &mdash; tamu tinggal scan. Pilih <b>OAuth</b> untuk akun pribadi <b>atau</b> Service Account (Shared Drive).
                 </p>
 
-                @if(session('success'))
-                    <div class="mb-4 px-3 py-2 rounded-lg bg-emerald-950 border border-emerald-700 text-emerald-300 text-xs font-semibold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> {{ session('success') }}</div>
-                @endif
-                @if(session('error'))
-                    <div class="mb-4 px-3 py-2 rounded-lg bg-rose-950 border border-rose-800 text-rose-300 text-xs font-semibold flex items-center gap-2"><i class="fa-solid fa-circle-xmark"></i> {{ session('error') }}</div>
-                @endif
+                <?php if(session('success')): ?>
+                    <div class="mb-4 px-3 py-2 rounded-lg bg-emerald-950 border border-emerald-700 text-emerald-300 text-xs font-semibold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> <?php echo e(session('success')); ?></div>
+                <?php endif; ?>
+                <?php if(session('error')): ?>
+                    <div class="mb-4 px-3 py-2 rounded-lg bg-rose-950 border border-rose-800 text-rose-300 text-xs font-semibold flex items-center gap-2"><i class="fa-solid fa-circle-xmark"></i> <?php echo e(session('error')); ?></div>
+                <?php endif; ?>
 
                 <div class="flex flex-wrap items-center gap-2 mb-4">
-                    @if($hasOAuth)
+                    <?php if($hasOAuth): ?>
                         <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300">
                             <i class="fa-solid fa-circle-check"></i> Terhubung ke Google Drive (OAuth - My Drive)
                         </span>
-                    @elseif($hasServiceAccount)
+                    <?php elseif($hasServiceAccount): ?>
                         <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-amber-950 border border-amber-700 text-amber-300">
                             <i class="fa-solid fa-circle-check"></i> Service Account terpasang (Shared Drive)
                         </span>
-                    @else
+                    <?php else: ?>
                         <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-rose-950 border border-rose-800 text-rose-300">
                             <i class="fa-solid fa-triangle-exclamation"></i> Belum terhubung ke Google Drive
                         </span>
-                    @endif
-                    @if(!$hasOAuthClient && !$hasServiceAccount)
+                    <?php endif; ?>
+                    <?php if(!$hasOAuthClient && !$hasServiceAccount): ?>
                         <span class="inline-flex items-center gap-1.5 text-[11px] px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400">
                             OAuth Client belum diisi di .env
                         </span>
-                    @endif
+                    <?php endif; ?>
                 </div>
 
                 <div class="flex flex-wrap gap-2 mb-4">
-                    @if($hasOAuth)
-                        <form action="{{ route('admin.gdrive.disconnect') }}" method="POST" onsubmit="return confirm('Putuskan koneksi Google Drive?')">
-                            @csrf
+                    <?php if($hasOAuth): ?>
+                        <form action="<?php echo e(route('admin.gdrive.disconnect')); ?>" method="POST" onsubmit="return confirm('Putuskan koneksi Google Drive?')">
+                            <?php echo csrf_field(); ?>
                             <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-2">
                                 <i class="fa-solid fa-link-slash"></i> Putuskan Koneksi (OAuth)
                             </button>
                         </form>
-                    @elseif($hasOAuthClient)
-                        <a href="{{ route('admin.gdrive.connect') }}" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2">
+                    <?php elseif($hasOAuthClient): ?>
+                        <a href="<?php echo e(route('admin.gdrive.connect')); ?>" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2">
                             <i class="fa-brands fa-google"></i> Hubungkan Google Drive (Login)
                         </a>
-                    @else
+                    <?php else: ?>
                         <button disabled class="px-4 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-bold flex items-center gap-2 cursor-not-allowed border border-slate-700">
                             <i class="fa-brands fa-google"></i> Hubungkan Google Drive (isi .env dulu)
                         </button>
-                    @endif
+                    <?php endif; ?>
                     <button type="button" id="btnTestDrive" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 flex items-center gap-2">
                         <i class="fa-solid fa-plug-circle-check"></i> Tes Koneksi
                     </button>
@@ -309,15 +309,15 @@
                     </div>
                 </details>
 
-                <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-                    @csrf
-                    <input type="hidden" name="is_payment_enabled" value="{{ $setting->is_payment_enabled ? '1' : '0' }}">
-                    <input type="hidden" name="default_brand_text" value="{{ $setting->default_brand_text }}">
-                    <input type="hidden" name="default_frame_color" value="{{ $setting->default_frame_color }}">
-                    <input type="hidden" name="admin_username" value="{{ $setting->admin_username }}">
-                    <input type="hidden" name="admin_password" value="{{ $setting->admin_password }}">
-                    <input type="hidden" name="admin_pin" value="{{ $setting->admin_pin }}">
-                    <input type="hidden" name="app_name" value="{{ $setting->app_name }}">
+                <form action="<?php echo e(route('admin.settings.update')); ?>" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="is_payment_enabled" value="<?php echo e($setting->is_payment_enabled ? '1' : '0'); ?>">
+                    <input type="hidden" name="default_brand_text" value="<?php echo e($setting->default_brand_text); ?>">
+                    <input type="hidden" name="default_frame_color" value="<?php echo e($setting->default_frame_color); ?>">
+                    <input type="hidden" name="admin_username" value="<?php echo e($setting->admin_username); ?>">
+                    <input type="hidden" name="admin_password" value="<?php echo e($setting->admin_password); ?>">
+                    <input type="hidden" name="admin_pin" value="<?php echo e($setting->admin_pin); ?>">
+                    <input type="hidden" name="app_name" value="<?php echo e($setting->app_name); ?>">
 
                     <div>
                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Service Account JSON</label>
@@ -329,13 +329,13 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Folder ID Google Drive</label>
-                            <input type="text" name="google_drive_folder_id" value="{{ $setting->google_drive_folder_id }}"
+                            <input type="text" name="google_drive_folder_id" value="<?php echo e($setting->google_drive_folder_id); ?>"
                                    placeholder="Contoh: 1A2B3C4D5E6F7G8h9i0j" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:border-emerald-500">
                             <p class="text-[11px] text-slate-500 mt-1">ID folder dari URL Drive (kosongkan = masuk ke root).</p>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Domain Publik (opsional)</label>
-                            <input type="url" name="public_domain_url" value="{{ $setting->public_domain_url }}"
+                            <input type="url" name="public_domain_url" value="<?php echo e($setting->public_domain_url); ?>"
                                    placeholder="https://booth.domain.com" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:border-emerald-500">
                             <p class="text-[11px] text-slate-500 mt-1">Alamat publik booth (untuk fallback QR bila Drive tidak dipakai).</p>
                         </div>
@@ -349,13 +349,13 @@
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer shrink-0">
                                 <input type="hidden" name="enable_email" value="0">
-                                <input type="checkbox" name="enable_email" value="1" {{ $setting->enable_email ? 'checked' : '' }} class="sr-only peer">
+                                <input type="checkbox" name="enable_email" value="1" <?php echo e($setting->enable_email ? 'checked' : ''); ?> class="sr-only peer">
                                 <div class="w-11 h-6 bg-slate-700 peer-checked:bg-emerald-600 rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
                             </label>
                         </div>
                         <div class="mt-3">
                             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Nama Pengirim Email (From Name)</label>
-                            <input type="text" name="email_from_name" value="{{ $setting->email_from_name }}" placeholder="Photobooth Kami"
+                            <input type="text" name="email_from_name" value="<?php echo e($setting->email_from_name); ?>" placeholder="Photobooth Kami"
                                    class="w-full sm:w-1/2 bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:border-emerald-500">
                         </div>
                     </div>
@@ -377,21 +377,21 @@
                 <p class="text-xs text-slate-400 mb-4 leading-relaxed">
                     <b>Mandiri</b>: self-service, bayar QRIS per layout, <b>galeri disembunyikan</b> (privasi). <b>Manual / Wedding</b>: gratis tanpa nominal seperti <code>photobooth-io.cc/index.html</code> → START langsung foto, <b>galeri publik tampil</b> (semua tamu bisa lihat siapa aja sudah foto). QR download otomatis di foto tetap ada di kedua mode.
                 </p>
-                <form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-4">
-                    @csrf
-                    <input type="hidden" name="is_payment_enabled" value="{{ $setting->is_payment_enabled ? '1' : '0' }}">
-                    <input type="hidden" name="default_brand_text" value="{{ $setting->default_brand_text }}">
-                    <input type="hidden" name="default_frame_color" value="{{ $setting->default_frame_color }}">
-                    <input type="hidden" name="admin_username" value="{{ $setting->admin_username }}">
-                    <input type="hidden" name="admin_password" value="{{ $setting->admin_password }}">
-                    <input type="hidden" name="admin_pin" value="{{ $setting->admin_pin }}">
-                    <input type="hidden" name="app_name" value="{{ $setting->app_name }}">
-                    <input type="hidden" name="google_drive_folder_id" value="{{ $setting->google_drive_folder_id }}">
-                    <input type="hidden" name="public_domain_url" value="{{ $setting->public_domain_url }}">
-                    <input type="hidden" name="enable_email" value="{{ $setting->enable_email ? '1' : '0' }}">
+                <form action="<?php echo e(route('admin.settings.update')); ?>" method="POST" class="space-y-4">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="is_payment_enabled" value="<?php echo e($setting->is_payment_enabled ? '1' : '0'); ?>">
+                    <input type="hidden" name="default_brand_text" value="<?php echo e($setting->default_brand_text); ?>">
+                    <input type="hidden" name="default_frame_color" value="<?php echo e($setting->default_frame_color); ?>">
+                    <input type="hidden" name="admin_username" value="<?php echo e($setting->admin_username); ?>">
+                    <input type="hidden" name="admin_password" value="<?php echo e($setting->admin_password); ?>">
+                    <input type="hidden" name="admin_pin" value="<?php echo e($setting->admin_pin); ?>">
+                    <input type="hidden" name="app_name" value="<?php echo e($setting->app_name); ?>">
+                    <input type="hidden" name="google_drive_folder_id" value="<?php echo e($setting->google_drive_folder_id); ?>">
+                    <input type="hidden" name="public_domain_url" value="<?php echo e($setting->public_domain_url); ?>">
+                    <input type="hidden" name="enable_email" value="<?php echo e($setting->enable_email ? '1' : '0'); ?>">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label class="relative flex cursor-pointer rounded-xl border-2 p-4 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-950/30 {{ ($setting->booth_mode ?? 'mandiri') === 'mandiri' ? 'border-brand-500 bg-brand-950/30' : 'border-slate-700 bg-slate-950' }}">
-                            <input type="radio" name="booth_mode" value="mandiri" class="sr-only" {{ ($setting->booth_mode ?? 'mandiri') === 'mandiri' ? 'checked' : '' }}>
+                        <label class="relative flex cursor-pointer rounded-xl border-2 p-4 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-950/30 <?php echo e(($setting->booth_mode ?? 'mandiri') === 'mandiri' ? 'border-brand-500 bg-brand-950/30' : 'border-slate-700 bg-slate-950'); ?>">
+                            <input type="radio" name="booth_mode" value="mandiri" class="sr-only" <?php echo e(($setting->booth_mode ?? 'mandiri') === 'mandiri' ? 'checked' : ''); ?>>
                             <div class="flex gap-3">
                                 <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-store text-brand-400"></i></div>
                                 <div>
@@ -400,8 +400,8 @@
                                 </div>
                             </div>
                         </label>
-                        <label class="relative flex cursor-pointer rounded-xl border-2 p-4 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-950/30 {{ ($setting->booth_mode ?? 'mandiri') === 'manual' ? 'border-emerald-500 bg-emerald-950/30' : 'border-slate-700 bg-slate-950' }}">
-                            <input type="radio" name="booth_mode" value="manual" class="sr-only" {{ ($setting->booth_mode ?? 'mandiri') === 'manual' ? 'checked' : '' }}>
+                        <label class="relative flex cursor-pointer rounded-xl border-2 p-4 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-950/30 <?php echo e(($setting->booth_mode ?? 'mandiri') === 'manual' ? 'border-emerald-500 bg-emerald-950/30' : 'border-slate-700 bg-slate-950'); ?>">
+                            <input type="radio" name="booth_mode" value="manual" class="sr-only" <?php echo e(($setting->booth_mode ?? 'mandiri') === 'manual' ? 'checked' : ''); ?>>
                             <div class="flex gap-3">
                                 <div class="w-8 h-8 rounded-lg bg-emerald-900 flex items-center justify-center shrink-0"><i class="fa-solid fa-heart text-emerald-400"></i></div>
                                 <div>
@@ -427,21 +427,21 @@
                     Gambar preview di halaman <b>"Pilih Format & Layout Foto Favoritmu"</b>. Upload PNG/JPG custom per layout untuk mengganti template auto-generate. Kosongkan = pakai default. Klik <b>Reset</b> untuk generate ulang.
                 </p>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    @foreach($packages as $pkg)
+                    <?php $__currentLoopData = $packages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pkg): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col">
                         <div class="aspect-[3/4] bg-slate-900 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center mb-2">
-                            <img src="{{ asset('layout-previews/'.$pkg['id'].'.png') }}?v={{ file_exists(public_path('layout-previews/'.$pkg['id'].'.png')) ? filemtime(public_path('layout-previews/'.$pkg['id'].'.png')) : time() }}" alt="{{ $pkg['name'] }}" class="w-full h-full object-contain" onerror="this.style.display='none'">
+                            <img src="<?php echo e(asset('layout-previews/'.$pkg['id'].'.png')); ?>?v=<?php echo e(file_exists(public_path('layout-previews/'.$pkg['id'].'.png')) ? filemtime(public_path('layout-previews/'.$pkg['id'].'.png')) : time()); ?>" alt="<?php echo e($pkg['name']); ?>" class="w-full h-full object-contain" onerror="this.style.display='none'">
                         </div>
-                        <div class="text-[11px] font-bold text-white leading-tight">{{ $pkg['name'] }}</div>
-                        <div class="text-[10px] text-slate-500 mb-2">{{ $pkg['shots'] }} Foto • {{ $pkg['id'] }}</div>
-                        <form action="{{ route('admin.layout.preview.upload') }}" method="POST" enctype="multipart/form-data" class="mt-auto space-y-1.5">
-                            @csrf
-                            <input type="hidden" name="layout_type" value="{{ $pkg['id'] }}">
+                        <div class="text-[11px] font-bold text-white leading-tight"><?php echo e($pkg['name']); ?></div>
+                        <div class="text-[10px] text-slate-500 mb-2"><?php echo e($pkg['shots']); ?> Foto • <?php echo e($pkg['id']); ?></div>
+                        <form action="<?php echo e(route('admin.layout.preview.upload')); ?>" method="POST" enctype="multipart/form-data" class="mt-auto space-y-1.5">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="layout_type" value="<?php echo e($pkg['id']); ?>">
                             <input type="file" name="preview_image" accept="image/*" class="block w-full text-[10px] text-slate-300 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-brand-600 file:text-white file:text-[10px] file:font-bold bg-slate-900 border border-slate-700 rounded">
                             <button type="submit" class="w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold">Upload</button>
                         </form>
                     </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-3">Tips: Ukuran ideal strip 400×1164, grid 678×618, polaroid 420×500. File akan overwrite <code>public/layout-previews/{id}.png</code>.</p>
             </div>
@@ -453,20 +453,20 @@
                     <span>2. Kalibrasi Kamera & Sensor (ISO, Brightness, Saturation)</span>
                 </h2>
 
-                <form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-6">
-                    @csrf
-                    @if($setting->is_payment_enabled) <input type="hidden" name="is_payment_enabled" value="1"> @endif
-                    <input type="hidden" name="default_brand_text" value="{{ $setting->default_brand_text }}">
-                    <input type="hidden" name="default_frame_color" value="{{ $setting->default_frame_color }}">
-                    <input type="hidden" name="admin_username" value="{{ $setting->admin_username }}">
-                    <input type="hidden" name="admin_password" value="{{ $setting->admin_password }}">
-                    <input type="hidden" name="admin_pin" value="{{ $setting->admin_pin }}">
-                    <input type="hidden" name="google_drive_folder_id" value="{{ $setting->google_drive_folder_id }}">
-                    <input type="hidden" name="public_domain_url" value="{{ $setting->public_domain_url }}">
-                    <input type="hidden" name="app_name" value="{{ $setting->app_name }}">
-                    @if($setting->is_lock_mode) <input type="hidden" name="is_lock_mode" value="1"> @endif
-                    @if($setting->lock_brand_text) <input type="hidden" name="lock_brand_text" value="1"> @endif
-                    @if($setting->lock_frame_color) <input type="hidden" name="lock_frame_color" value="1"> @endif
+                <form action="<?php echo e(route('admin.settings.update')); ?>" method="POST" class="space-y-6">
+                    <?php echo csrf_field(); ?>
+                    <?php if($setting->is_payment_enabled): ?> <input type="hidden" name="is_payment_enabled" value="1"> <?php endif; ?>
+                    <input type="hidden" name="default_brand_text" value="<?php echo e($setting->default_brand_text); ?>">
+                    <input type="hidden" name="default_frame_color" value="<?php echo e($setting->default_frame_color); ?>">
+                    <input type="hidden" name="admin_username" value="<?php echo e($setting->admin_username); ?>">
+                    <input type="hidden" name="admin_password" value="<?php echo e($setting->admin_password); ?>">
+                    <input type="hidden" name="admin_pin" value="<?php echo e($setting->admin_pin); ?>">
+                    <input type="hidden" name="google_drive_folder_id" value="<?php echo e($setting->google_drive_folder_id); ?>">
+                    <input type="hidden" name="public_domain_url" value="<?php echo e($setting->public_domain_url); ?>">
+                    <input type="hidden" name="app_name" value="<?php echo e($setting->app_name); ?>">
+                    <?php if($setting->is_lock_mode): ?> <input type="hidden" name="is_lock_mode" value="1"> <?php endif; ?>
+                    <?php if($setting->lock_brand_text): ?> <input type="hidden" name="lock_brand_text" value="1"> <?php endif; ?>
+                    <?php if($setting->lock_frame_color): ?> <input type="hidden" name="lock_frame_color" value="1"> <?php endif; ?>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                         <div class="space-y-4">
@@ -481,36 +481,36 @@
                             <div>
                                 <div class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
                                     <span>ISO / Exposure Level</span>
-                                    <span id="val_iso" class="font-mono text-brand-400">{{ $setting->camera_iso > 0 ? '+'.$setting->camera_iso : $setting->camera_iso }}</span>
+                                    <span id="val_iso" class="font-mono text-brand-400"><?php echo e($setting->camera_iso > 0 ? '+'.$setting->camera_iso : $setting->camera_iso); ?></span>
                                 </div>
-                                <input type="range" name="camera_iso" id="range_iso" min="-100" max="100" value="{{ $setting->camera_iso }}" class="w-full accent-brand-500 cursor-pointer">
+                                <input type="range" name="camera_iso" id="range_iso" min="-100" max="100" value="<?php echo e($setting->camera_iso); ?>" class="w-full accent-brand-500 cursor-pointer">
                             </div>
 
                             <!-- Brightness -->
                             <div>
                                 <div class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
                                     <span>Brightness (Kecerahan)</span>
-                                    <span id="val_brightness" class="font-mono text-brand-400">{{ $setting->camera_brightness }}%</span>
+                                    <span id="val_brightness" class="font-mono text-brand-400"><?php echo e($setting->camera_brightness); ?>%</span>
                                 </div>
-                                <input type="range" name="camera_brightness" id="range_brightness" min="40" max="180" value="{{ $setting->camera_brightness }}" class="w-full accent-brand-500 cursor-pointer">
+                                <input type="range" name="camera_brightness" id="range_brightness" min="40" max="180" value="<?php echo e($setting->camera_brightness); ?>" class="w-full accent-brand-500 cursor-pointer">
                             </div>
 
                             <!-- Contrast -->
                             <div>
                                 <div class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
                                     <span>Contrast (Kontras Gambar)</span>
-                                    <span id="val_contrast" class="font-mono text-brand-400">{{ $setting->camera_contrast }}%</span>
+                                    <span id="val_contrast" class="font-mono text-brand-400"><?php echo e($setting->camera_contrast); ?>%</span>
                                 </div>
-                                <input type="range" name="camera_contrast" id="range_contrast" min="50" max="160" value="{{ $setting->camera_contrast }}" class="w-full accent-brand-500 cursor-pointer">
+                                <input type="range" name="camera_contrast" id="range_contrast" min="50" max="160" value="<?php echo e($setting->camera_contrast); ?>" class="w-full accent-brand-500 cursor-pointer">
                             </div>
 
                             <!-- Saturation -->
                             <div>
                                 <div class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
                                     <span>Saturation (Kepekatan Warna)</span>
-                                    <span id="val_saturation" class="font-mono text-brand-400">{{ $setting->camera_saturation }}%</span>
+                                    <span id="val_saturation" class="font-mono text-brand-400"><?php echo e($setting->camera_saturation); ?>%</span>
                                 </div>
-                                <input type="range" name="camera_saturation" id="range_saturation" min="0" max="180" value="{{ $setting->camera_saturation }}" class="w-full accent-brand-500 cursor-pointer">
+                                <input type="range" name="camera_saturation" id="range_saturation" min="0" max="180" value="<?php echo e($setting->camera_saturation); ?>" class="w-full accent-brand-500 cursor-pointer">
                             </div>
                         </div>
 
@@ -539,27 +539,27 @@
                     <span>3. Mode Kunci (Kiosk Lock) & Kredensial Admin</span>
                 </h2>
 
-                <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-                    @csrf
-                    @if($setting->is_payment_enabled) <input type="hidden" name="is_payment_enabled" value="1"> @endif
-                    <input type="hidden" name="camera_device_id" value="{{ $setting->camera_device_id }}">
-                    <input type="hidden" name="camera_brightness" value="{{ $setting->camera_brightness }}">
-                    <input type="hidden" name="camera_contrast" value="{{ $setting->camera_contrast }}">
-                    <input type="hidden" name="camera_iso" value="{{ $setting->camera_iso }}">
-                    <input type="hidden" name="camera_saturation" value="{{ $setting->camera_saturation }}">
-                    <input type="hidden" name="google_drive_folder_id" value="{{ $setting->google_drive_folder_id }}">
-                    <input type="hidden" name="public_domain_url" value="{{ $setting->public_domain_url }}">
-                    <input type="hidden" name="app_name" value="{{ $setting->app_name }}">
+                <form action="<?php echo e(route('admin.settings.update')); ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
+                    <?php echo csrf_field(); ?>
+                    <?php if($setting->is_payment_enabled): ?> <input type="hidden" name="is_payment_enabled" value="1"> <?php endif; ?>
+                    <input type="hidden" name="camera_device_id" value="<?php echo e($setting->camera_device_id); ?>">
+                    <input type="hidden" name="camera_brightness" value="<?php echo e($setting->camera_brightness); ?>">
+                    <input type="hidden" name="camera_contrast" value="<?php echo e($setting->camera_contrast); ?>">
+                    <input type="hidden" name="camera_iso" value="<?php echo e($setting->camera_iso); ?>">
+                    <input type="hidden" name="camera_saturation" value="<?php echo e($setting->camera_saturation); ?>">
+                    <input type="hidden" name="google_drive_folder_id" value="<?php echo e($setting->google_drive_folder_id); ?>">
+                    <input type="hidden" name="public_domain_url" value="<?php echo e($setting->public_domain_url); ?>">
+                    <input type="hidden" name="app_name" value="<?php echo e($setting->app_name); ?>">
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
                             <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-950 border border-slate-800">
                                 <div class="shrink-0">
-                                    @if($setting->favicon_path)
-                                        <img src="{{ asset($setting->favicon_path) }}" alt="Favicon" class="w-10 h-10 rounded-lg border border-slate-700 bg-slate-900">
-                                    @else
+                                    <?php if($setting->favicon_path): ?>
+                                        <img src="<?php echo e(asset($setting->favicon_path)); ?>" alt="Favicon" class="w-10 h-10 rounded-lg border border-slate-700 bg-slate-900">
+                                    <?php else: ?>
                                         <div class="w-10 h-10 rounded-lg border border-dashed border-slate-700 bg-slate-900 flex items-center justify-center text-slate-600 text-xs">?</div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                                 <div class="flex-1">
                                     <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1">Ganti Favicon</label>
@@ -569,50 +569,50 @@
 
                             <div>
                                 <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Nama Aplikasi / Booth (Tampil di Header & Title)</label>
-                                <input type="text" name="app_name" value="{{ $setting->app_name }}" maxlength="30" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:border-brand-500">
+                                <input type="text" name="app_name" value="<?php echo e($setting->app_name); ?>" maxlength="30" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:border-brand-500">
                             </div>
 
                             <div>
                                 <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Teks Brand Bawaan di Bawah Foto</label>
-                                <input type="text" name="default_brand_text" value="{{ $setting->default_brand_text }}" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:border-brand-500">
+                                <input type="text" name="default_brand_text" value="<?php echo e($setting->default_brand_text); ?>" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:border-brand-500">
                             </div>
 
                             <div>
                                 <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Warna Bingkai Default</label>
                                 <div class="flex items-center gap-3">
-                                    <input type="color" name="default_frame_color" value="{{ $setting->default_frame_color }}" class="w-10 h-10 rounded-lg border-0 cursor-pointer bg-transparent">
-                                    <span class="text-xs font-mono text-slate-400">{{ $setting->default_frame_color }}</span>
+                                    <input type="color" name="default_frame_color" value="<?php echo e($setting->default_frame_color); ?>" class="w-10 h-10 rounded-lg border-0 cursor-pointer bg-transparent">
+                                    <span class="text-xs font-mono text-slate-400"><?php echo e($setting->default_frame_color); ?></span>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
                                 <div>
                                     <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Username Admin</label>
-                                    <input type="text" name="admin_username" value="{{ $setting->admin_username }}" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5">
+                                    <input type="text" name="admin_username" value="<?php echo e($setting->admin_username); ?>" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5">
                                 </div>
                                 <div>
                                     <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Password Admin</label>
-                                    <input type="text" name="admin_password" value="{{ $setting->admin_password }}" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 font-mono">
+                                    <input type="text" name="admin_password" value="<?php echo e($setting->admin_password); ?>" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 font-mono">
                                 </div>
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">PIN Pengaman (4-8 Digit)</label>
-                                <input type="password" name="admin_pin" value="{{ $setting->admin_pin }}" maxlength="8" class="w-32 bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 text-center font-mono">
+                                <input type="password" name="admin_pin" value="<?php echo e($setting->admin_pin); ?>" maxlength="8" class="w-32 bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 text-center font-mono">
                             </div>
 
                             <div class="pt-3 border-t border-slate-800 grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Warna Tema UI</label>
                                     <div class="flex items-center gap-3">
-                                        <input type="color" name="theme_color" value="{{ $setting->theme_color ?? '#c2337d' }}" class="w-10 h-10 rounded-lg border-0 cursor-pointer bg-transparent">
-                                        <span class="text-xs font-mono text-slate-400">{{ $setting->theme_color ?? '#c2337d' }}</span>
+                                        <input type="color" name="theme_color" value="<?php echo e($setting->theme_color ?? '#c2337d'); ?>" class="w-10 h-10 rounded-lg border-0 cursor-pointer bg-transparent">
+                                        <span class="text-xs font-mono text-slate-400"><?php echo e($setting->theme_color ?? '#c2337d'); ?></span>
                                     </div>
                                 </div>
                                 <div>
                                     <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Bahasa Antarmuka</label>
                                     <select name="ui_language" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5">
-                                        <option value="id" {{ ($setting->ui_language ?? 'id') == 'id' ? 'selected' : '' }}>Indonesia (ID)</option>
-                                        <option value="en" {{ $setting->ui_language == 'en' ? 'selected' : '' }}>English (EN)</option>
+                                        <option value="id" <?php echo e(($setting->ui_language ?? 'id') == 'id' ? 'selected' : ''); ?>>Indonesia (ID)</option>
+                                        <option value="en" <?php echo e($setting->ui_language == 'en' ? 'selected' : ''); ?>>English (EN)</option>
                                     </select>
                                 </div>
                             </div>
@@ -620,11 +620,11 @@
                             <div class="pt-3 border-t border-slate-800 space-y-3">
                                 <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-950 border border-slate-800">
                                     <div class="shrink-0">
-                                        @if($setting->business_logo_path)
-                                            <img src="{{ asset($setting->business_logo_path) }}" alt="Logo" class="w-12 h-12 object-contain bg-white rounded-lg border border-slate-700 p-1">
-                                        @else
+                                        <?php if($setting->business_logo_path): ?>
+                                            <img src="<?php echo e(asset($setting->business_logo_path)); ?>" alt="Logo" class="w-12 h-12 object-contain bg-white rounded-lg border border-slate-700 p-1">
+                                        <?php else: ?>
                                             <div class="w-12 h-12 flex items-center justify-center bg-slate-900 rounded-lg border border-dashed border-slate-700 text-slate-600 text-xs text-center">No Logo</div>
-                                        @endif
+                                        <?php endif; ?>
                                     </div>
                                     <div class="flex-1">
                                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1">Logo Watermark Bisnis</label>
@@ -635,27 +635,27 @@
                                     <div>
                                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Posisi Logo</label>
                                         <select name="logo_position" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5">
-                                            <option value="bottom-center" {{ ($setting->logo_position ?? 'bottom-center') == 'bottom-center' ? 'selected' : '' }}>Bawah Tengah</option>
-                                            <option value="top-left" {{ $setting->logo_position == 'top-left' ? 'selected' : '' }}>Kiri Atas</option>
-                                            <option value="top-right" {{ $setting->logo_position == 'top-right' ? 'selected' : '' }}>Kanan Atas</option>
-                                            <option value="bottom-left" {{ $setting->logo_position == 'bottom-left' ? 'selected' : '' }}>Kiri Bawah</option>
-                                            <option value="bottom-right" {{ $setting->logo_position == 'bottom-right' ? 'selected' : '' }}>Kanan Bawah</option>
-                                            <option value="center" {{ $setting->logo_position == 'center' ? 'selected' : '' }}>Tengah</option>
+                                            <option value="bottom-center" <?php echo e(($setting->logo_position ?? 'bottom-center') == 'bottom-center' ? 'selected' : ''); ?>>Bawah Tengah</option>
+                                            <option value="top-left" <?php echo e($setting->logo_position == 'top-left' ? 'selected' : ''); ?>>Kiri Atas</option>
+                                            <option value="top-right" <?php echo e($setting->logo_position == 'top-right' ? 'selected' : ''); ?>>Kanan Atas</option>
+                                            <option value="bottom-left" <?php echo e($setting->logo_position == 'bottom-left' ? 'selected' : ''); ?>>Kiri Bawah</option>
+                                            <option value="bottom-right" <?php echo e($setting->logo_position == 'bottom-right' ? 'selected' : ''); ?>>Kanan Bawah</option>
+                                            <option value="center" <?php echo e($setting->logo_position == 'center' ? 'selected' : ''); ?>>Tengah</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5">Bentuk Foto Default</label>
                                         <select name="default_photo_shape" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5">
-                                            <option value="none" {{ ($setting->default_photo_shape ?? 'none') == 'none' ? 'selected' : '' }}>Kotak (None)</option>
-                                            <option value="soft" {{ $setting->default_photo_shape == 'soft' ? 'selected' : '' }}>Soft Edge</option>
-                                            <option value="circle" {{ $setting->default_photo_shape == 'circle' ? 'selected' : '' }}>Lingkaran</option>
-                                            <option value="heart" {{ $setting->default_photo_shape == 'heart' ? 'selected' : '' }}>Hati</option>
+                                            <option value="none" <?php echo e(($setting->default_photo_shape ?? 'none') == 'none' ? 'selected' : ''); ?>>Kotak (None)</option>
+                                            <option value="soft" <?php echo e($setting->default_photo_shape == 'soft' ? 'selected' : ''); ?>>Soft Edge</option>
+                                            <option value="circle" <?php echo e($setting->default_photo_shape == 'circle' ? 'selected' : ''); ?>>Lingkaran</option>
+                                            <option value="heart" <?php echo e($setting->default_photo_shape == 'heart' ? 'selected' : ''); ?>>Hati</option>
                                         </select>
                                     </div>
                                 </div>
                                 <label class="flex items-start gap-3 text-xs text-slate-300 cursor-pointer">
                                     <input type="hidden" name="lock_photo_shape" value="0">
-                                    <input type="checkbox" name="lock_photo_shape" value="1" {{ $setting->lock_photo_shape ? 'checked' : '' }} class="mt-0.5 rounded border-slate-700 text-brand-600">
+                                    <input type="checkbox" name="lock_photo_shape" value="1" <?php echo e($setting->lock_photo_shape ? 'checked' : ''); ?> class="mt-0.5 rounded border-slate-700 text-brand-600">
                                     <div>
                                         <span class="font-bold text-white block">Kunci Bentuk Foto</span>
                                         <span class="text-slate-500 text-[11px]">Pengunjung tidak bisa mengubah bentuk foto (pakai default booth).</span>
@@ -669,7 +669,7 @@
 
                             <label class="flex items-start gap-3 text-xs text-slate-300 cursor-pointer">
                                 <input type="hidden" name="lock_brand_text" value="0">
-                                <input type="checkbox" name="lock_brand_text" value="1" {{ $setting->lock_brand_text ? 'checked' : '' }} class="mt-0.5 rounded border-slate-700 text-brand-600">
+                                <input type="checkbox" name="lock_brand_text" value="1" <?php echo e($setting->lock_brand_text ? 'checked' : ''); ?> class="mt-0.5 rounded border-slate-700 text-brand-600">
                                 <div>
                                     <span class="font-bold text-white block">Kunci Teks Brand</span>
                                     <span class="text-slate-500 text-[11px]">Pengunjung tidak bisa mengganti/menghapus nama brand booth Anda.</span>
@@ -678,7 +678,7 @@
 
                             <label class="flex items-start gap-3 text-xs text-slate-300 cursor-pointer">
                                 <input type="hidden" name="lock_frame_color" value="0">
-                                <input type="checkbox" name="lock_frame_color" value="1" {{ $setting->lock_frame_color ? 'checked' : '' }} class="mt-0.5 rounded border-slate-700 text-brand-600">
+                                <input type="checkbox" name="lock_frame_color" value="1" <?php echo e($setting->lock_frame_color ? 'checked' : ''); ?> class="mt-0.5 rounded border-slate-700 text-brand-600">
                                 <div>
                                     <span class="font-bold text-white block">Kunci Warna Bingkai</span>
                                     <span class="text-slate-500 text-[11px]">Warna bingkai terkunci pada warna default booth.</span>
@@ -687,7 +687,7 @@
 
                             <label class="flex items-start gap-3 text-xs text-slate-300 cursor-pointer pt-2 border-t border-slate-800">
                                 <input type="hidden" name="is_lock_mode" value="0">
-                                <input type="checkbox" name="is_lock_mode" value="1" {{ $setting->is_lock_mode ? 'checked' : '' }} class="mt-0.5 rounded border-slate-700 text-brand-600">
+                                <input type="checkbox" name="is_lock_mode" value="1" <?php echo e($setting->is_lock_mode ? 'checked' : ''); ?> class="mt-0.5 rounded border-slate-700 text-brand-600">
                                 <div>
                                     <span class="font-bold text-amber-300 block">Kiosk Fullscreen Lock Mode</span>
                                     <span class="text-slate-500 text-[11px]">Sembunyikan tombol gear admin di layar utama saat booth digunakan pengunjung.</span>
@@ -711,43 +711,43 @@
                     <span>4. Suasana Booth & Mode Event</span>
                 </h2>
 
-                <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-                    @csrf
-                    @if($setting->is_payment_enabled) <input type="hidden" name="is_payment_enabled" value="1"> @endif
-                    @if($setting->is_lock_mode) <input type="hidden" name="is_lock_mode" value="1"> @endif
-                    @if($setting->lock_brand_text) <input type="hidden" name="lock_brand_text" value="1"> @endif
-                    @if($setting->lock_frame_color) <input type="hidden" name="lock_frame_color" value="1"> @endif
-                    @if($setting->lock_photo_shape) <input type="hidden" name="lock_photo_shape" value="1"> @endif
-                    @if($setting->enable_countdown_sound) <input type="hidden" name="enable_countdown_sound" value="1"> @endif
-                    @if($setting->enable_greenscreen) <input type="hidden" name="enable_greenscreen" value="1"> @endif
-                    <input type="hidden" name="camera_device_id" value="{{ $setting->camera_device_id }}">
-                    <input type="hidden" name="camera_brightness" value="{{ $setting->camera_brightness }}">
-                    <input type="hidden" name="camera_contrast" value="{{ $setting->camera_contrast }}">
-                    <input type="hidden" name="camera_iso" value="{{ $setting->camera_iso }}">
-                    <input type="hidden" name="camera_saturation" value="{{ $setting->camera_saturation }}">
-                    <input type="hidden" name="default_brand_text" value="{{ $setting->default_brand_text }}">
-                    <input type="hidden" name="default_frame_color" value="{{ $setting->default_frame_color }}">
-                    <input type="hidden" name="admin_username" value="{{ $setting->admin_username }}">
-                    <input type="hidden" name="admin_password" value="{{ $setting->admin_password }}">
-                    <input type="hidden" name="admin_pin" value="{{ $setting->admin_pin }}">
-                    <input type="hidden" name="google_drive_folder_id" value="{{ $setting->google_drive_folder_id }}">
-                    <input type="hidden" name="public_domain_url" value="{{ $setting->public_domain_url }}">
-                    <input type="hidden" name="app_name" value="{{ $setting->app_name }}">
-                    <input type="hidden" name="theme_color" value="{{ $setting->theme_color ?? '#c2337d' }}">
-                    <input type="hidden" name="ui_language" value="{{ $setting->ui_language ?? 'id' }}">
-                    <input type="hidden" name="logo_position" value="{{ $setting->logo_position ?? 'bottom-center' }}">
-                    <input type="hidden" name="default_photo_shape" value="{{ $setting->default_photo_shape ?? 'none' }}">
+                <form action="<?php echo e(route('admin.settings.update')); ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
+                    <?php echo csrf_field(); ?>
+                    <?php if($setting->is_payment_enabled): ?> <input type="hidden" name="is_payment_enabled" value="1"> <?php endif; ?>
+                    <?php if($setting->is_lock_mode): ?> <input type="hidden" name="is_lock_mode" value="1"> <?php endif; ?>
+                    <?php if($setting->lock_brand_text): ?> <input type="hidden" name="lock_brand_text" value="1"> <?php endif; ?>
+                    <?php if($setting->lock_frame_color): ?> <input type="hidden" name="lock_frame_color" value="1"> <?php endif; ?>
+                    <?php if($setting->lock_photo_shape): ?> <input type="hidden" name="lock_photo_shape" value="1"> <?php endif; ?>
+                    <?php if($setting->enable_countdown_sound): ?> <input type="hidden" name="enable_countdown_sound" value="1"> <?php endif; ?>
+                    <?php if($setting->enable_greenscreen): ?> <input type="hidden" name="enable_greenscreen" value="1"> <?php endif; ?>
+                    <input type="hidden" name="camera_device_id" value="<?php echo e($setting->camera_device_id); ?>">
+                    <input type="hidden" name="camera_brightness" value="<?php echo e($setting->camera_brightness); ?>">
+                    <input type="hidden" name="camera_contrast" value="<?php echo e($setting->camera_contrast); ?>">
+                    <input type="hidden" name="camera_iso" value="<?php echo e($setting->camera_iso); ?>">
+                    <input type="hidden" name="camera_saturation" value="<?php echo e($setting->camera_saturation); ?>">
+                    <input type="hidden" name="default_brand_text" value="<?php echo e($setting->default_brand_text); ?>">
+                    <input type="hidden" name="default_frame_color" value="<?php echo e($setting->default_frame_color); ?>">
+                    <input type="hidden" name="admin_username" value="<?php echo e($setting->admin_username); ?>">
+                    <input type="hidden" name="admin_password" value="<?php echo e($setting->admin_password); ?>">
+                    <input type="hidden" name="admin_pin" value="<?php echo e($setting->admin_pin); ?>">
+                    <input type="hidden" name="google_drive_folder_id" value="<?php echo e($setting->google_drive_folder_id); ?>">
+                    <input type="hidden" name="public_domain_url" value="<?php echo e($setting->public_domain_url); ?>">
+                    <input type="hidden" name="app_name" value="<?php echo e($setting->app_name); ?>">
+                    <input type="hidden" name="theme_color" value="<?php echo e($setting->theme_color ?? '#c2337d'); ?>">
+                    <input type="hidden" name="ui_language" value="<?php echo e($setting->ui_language ?? 'id'); ?>">
+                    <input type="hidden" name="logo_position" value="<?php echo e($setting->logo_position ?? 'bottom-center'); ?>">
+                    <input type="hidden" name="default_photo_shape" value="<?php echo e($setting->default_photo_shape ?? 'none'); ?>">
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <!-- Musik Latar -->
                         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
                             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">Musik Latar Booth (MP3)</label>
                             <div class="flex items-center gap-3 mb-2">
-                                @if($setting->bg_music_path)
+                                <?php if($setting->bg_music_path): ?>
                                     <span class="text-[11px] text-emerald-400"><i class="fa-solid fa-music"></i> Aktif</span>
-                                @else
+                                <?php else: ?>
                                     <span class="text-[11px] text-slate-500">Belum diatur</span>
-                                @endif
+                                <?php endif; ?>
                             </div>
                             <input type="file" name="bg_music" accept="audio/mpeg,audio/wav,audio/ogg" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700">
                             <span class="text-[10px] text-slate-500 mt-1 block">Maks 10 MB. Diputar otomatis di layar booth (mute-able).</span>
@@ -757,18 +757,18 @@
                         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
                             <label class="flex items-start gap-3 text-xs text-slate-300 cursor-pointer mb-3">
                                 <input type="hidden" name="enable_greenscreen" value="0">
-                                <input type="checkbox" name="enable_greenscreen" value="1" {{ $setting->enable_greenscreen ? 'checked' : '' }} class="mt-0.5 rounded border-slate-700 text-brand-600">
+                                <input type="checkbox" name="enable_greenscreen" value="1" <?php echo e($setting->enable_greenscreen ? 'checked' : ''); ?> class="mt-0.5 rounded border-slate-700 text-brand-600">
                                 <div>
                                     <span class="font-bold text-white block">Aktifkan Green Screen / Virtual BG</span>
                                     <span class="text-slate-500 text-[11px]">Ganti latar hijau otomatis dengan gambar di bawah.</span>
                                 </div>
                             </label>
                             <div class="flex items-center gap-3 mb-2">
-                                @if($setting->greenscreen_bg_path)
-                                    <img src="{{ asset($setting->greenscreen_bg_path) }}" class="w-16 h-12 object-cover rounded border border-slate-700">
-                                @else
+                                <?php if($setting->greenscreen_bg_path): ?>
+                                    <img src="<?php echo e(asset($setting->greenscreen_bg_path)); ?>" class="w-16 h-12 object-cover rounded border border-slate-700">
+                                <?php else: ?>
                                     <div class="w-16 h-12 rounded border border-dashed border-slate-700 flex items-center justify-center text-slate-600 text-[10px]">No BG</div>
-                                @endif
+                                <?php endif; ?>
                                 <span class="text-[11px] text-slate-500">Background virtual</span>
                             </div>
                             <input type="file" name="greenscreen_bg" accept="image/png,image/jpg,image/jpeg,image/webp" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700">
@@ -782,7 +782,7 @@
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="hidden" name="enable_countdown_sound" value="0">
-                                <input type="checkbox" name="enable_countdown_sound" value="1" {{ $setting->enable_countdown_sound ? 'checked' : '' }} class="sr-only peer">
+                                <input type="checkbox" name="enable_countdown_sound" value="1" <?php echo e($setting->enable_countdown_sound ? 'checked' : ''); ?> class="sr-only peer">
                                 <div class="w-14 h-7 bg-slate-800 peer-checked:bg-brand-600 rounded-full after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:after:translate-x-full"></div>
                             </label>
                         </div>
@@ -790,14 +790,14 @@
                         <!-- Event Voucher -->
                         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
                             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">Kode Voucher Mode Event</label>
-                            <input type="text" name="event_voucher_code" value="{{ $setting->event_voucher_code }}" placeholder="Misal: GRATIS2025" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 font-mono uppercase">
+                            <input type="text" name="event_voucher_code" value="<?php echo e($setting->event_voucher_code); ?>" placeholder="Misal: GRATIS2025" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 font-mono uppercase">
                             <span class="text-[10px] text-slate-500 mt-1 block">Tampil di layar booth saat Mode Event Gratis (opsional, untuk pelacakan).</span>
                         </div>
 
                         <!-- Footer Booth -->
                         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 sm:col-span-2">
                             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">Teks Footer Halaman Booth</label>
-                            <textarea name="footer_text" rows="3" placeholder="Terima kasih telah menggunakan Photobooth kami..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:border-brand-500">{{ $setting->footer_text }}</textarea>
+                            <textarea name="footer_text" rows="3" placeholder="Terima kasih telah menggunakan Photobooth kami..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:border-brand-500"><?php echo e($setting->footer_text); ?></textarea>
                             <span class="text-[10px] text-slate-500 mt-1 block">Teks ini tampil di bagian bawah halaman booth (beranda, gallery, hasil). Mendukung multiple baris.</span>
                         </div>
                     </div>
@@ -819,8 +819,8 @@
                     <span>Tambah Template Frame Bergambar</span>
                 </h2>
 
-                <form action="{{ route('admin.frames.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-                    @csrf
+                <form action="<?php echo e(route('admin.frames.upload')); ?>" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <?php echo csrf_field(); ?>
                     <div>
                         <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1">Nama Frame</label>
                         <input type="text" name="name" placeholder="Misal: Kemerdekaan 17 Agustus" required class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:border-brand-500">
@@ -884,19 +884,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($frameSizes as $layout => $sz)
+                                <?php $__currentLoopData = $frameSizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $layout => $sz): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr class="border-b border-slate-800/60">
-                                    <td class="py-1.5 pr-2 font-mono text-brand-300">{{ $layout }}</td>
-                                    <td class="py-1.5 px-2">{{ $sz['w'] }} × {{ $sz['h'] }} px</td>
-                                    <td class="py-1.5 px-2">{{ $sz['w']*3 }} × {{ $sz['h']*3 }} px</td>
-                                    <td class="py-1.5 px-2">{{ number_format($sz['w']/$sz['h'], 3) }}</td>
+                                    <td class="py-1.5 pr-2 font-mono text-brand-300"><?php echo e($layout); ?></td>
+                                    <td class="py-1.5 px-2"><?php echo e($sz['w']); ?> × <?php echo e($sz['h']); ?> px</td>
+                                    <td class="py-1.5 px-2"><?php echo e($sz['w']*3); ?> × <?php echo e($sz['h']*3); ?> px</td>
+                                    <td class="py-1.5 px-2"><?php echo e(number_format($sz['w']/$sz['h'], 3)); ?></td>
                                     <td class="py-1.5 px-2">
-                                        <a href="{{ route('admin.frames.template.download', ['layout' => $layout]) }}" class="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-brand-300 border border-slate-700" title="Download contoh template SVG">
+                                        <a href="<?php echo e(route('admin.frames.template.download', ['layout' => $layout])); ?>" class="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-brand-300 border border-slate-700" title="Download contoh template SVG">
                                             <i class="fa-solid fa-download"></i> SVG
                                         </a>
                                     </td>
                                 </tr>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </tbody>
                         </table>
                     </div>
@@ -910,39 +910,39 @@
             <!-- Daftar Template Frame Aktif -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-sm font-bold text-white mb-3 flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span>Koleksi Frame Aktif ({{ count($customFrames) }})</span>
+                    <span>Koleksi Frame Aktif (<?php echo e(count($customFrames)); ?>)</span>
                 </h2>
 
                 <div class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-                    @forelse($customFrames as $frame)
+                    <?php $__empty_1 = true; $__currentLoopData = $customFrames; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $frame): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
-                            <img src="{{ asset($frame->frame_image_path) }}" alt="{{ $frame->name }}" class="w-12 h-16 object-contain bg-slate-900 rounded border border-slate-800">
+                            <img src="<?php echo e(asset($frame->frame_image_path)); ?>" alt="<?php echo e($frame->name); ?>" class="w-12 h-16 object-contain bg-slate-900 rounded border border-slate-800">
                             <div>
-                                <span class="text-xs font-bold text-white block">{{ $frame->name }}</span>
-                                <span class="text-[10px] text-brand-400">{{ $frame->category }} • {{ strtoupper($frame->layout_type) }}</span>
+                                <span class="text-xs font-bold text-white block"><?php echo e($frame->name); ?></span>
+                                <span class="text-[10px] text-brand-400"><?php echo e($frame->category); ?> • <?php echo e(strtoupper($frame->layout_type)); ?></span>
                             </div>
                         </div>
-                        <form action="{{ route('admin.frames.delete', ['id' => $frame->id]) }}" method="POST" onsubmit="return confirm('Hapus template frame ini?')">
-                            @csrf
+                        <form action="<?php echo e(route('admin.frames.delete', ['id' => $frame->id])); ?>" method="POST" onsubmit="return confirm('Hapus template frame ini?')">
+                            <?php echo csrf_field(); ?>
                             <button type="submit" class="text-xs text-rose-400 hover:text-rose-300 p-2">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </form>
                     </div>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <div class="text-center py-6 text-xs text-slate-500">
                         Belum ada template frame bergambar. Silakan upload berkas PNG di atas.
                     </div>
-                    @endforelse
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 <script>
     const adminVideo = document.getElementById('adminPreviewVideo');
     const adminCameraSelect = document.getElementById('adminCameraSelect');
@@ -995,7 +995,7 @@
                 const opt = document.createElement('option');
                 opt.value = dev.deviceId;
                 opt.text = dev.label || `Kamera ${idx + 1}`;
-                if (dev.deviceId === "{{ $setting->camera_device_id }}") opt.selected = true;
+                if (dev.deviceId === "<?php echo e($setting->camera_device_id); ?>") opt.selected = true;
                 adminCameraSelect.appendChild(opt);
             });
         } catch(e) {
@@ -1003,7 +1003,7 @@
         }
     }
 
-    initAdminCamera("{{ $setting->camera_device_id }}");
+    initAdminCamera("<?php echo e($setting->camera_device_id); ?>");
     applyAdminFilters();
     adminCameraSelect.addEventListener('change', () => initAdminCamera(adminCameraSelect.value));
 
@@ -1015,7 +1015,7 @@
             driveTestResult.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menguji...';
             driveTestResult.className = 'text-xs font-semibold text-slate-400';
             try {
-                const res = await fetch("{{ route('admin.gdrive.test') }}", {
+                const res = await fetch("<?php echo e(route('admin.gdrive.test')); ?>", {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content') }
                 });
@@ -1034,4 +1034,5 @@
         });
     }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\xampp\htdocs\photobooth\resources\views/admin/settings.blade.php ENDPATH**/ ?>

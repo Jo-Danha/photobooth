@@ -29,6 +29,9 @@
                     <div class="p-3 bg-white rounded-xl shadow-md">
                         <img src="{{ $qrCodeUrl }}" alt="Download QR Code" class="w-44 h-44">
                     </div>
+                    <p class="text-[10px] text-slate-500 mt-2 flex items-center gap-1">
+                        <i class="fa-brands fa-google-drive text-emerald-400"></i> Foto otomatis tersimpan di Google Drive & siap diunduh.
+                    </p>
                 </div>
 
                 <!-- Tombol Action -->
@@ -53,6 +56,19 @@
                         </a>
                     @endif
 
+                    @if($setting->enable_email)
+                        <div class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
+                            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5 mb-2">
+                                <i class="fa-solid fa-envelope text-brand-400"></i> Kirim Foto ke Email
+                            </label>
+                            <div class="flex gap-2">
+                                <input type="email" id="emailInput" placeholder="nama@email.com" class="flex-1 bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:border-brand-500">
+                                <button id="btnSendEmail" class="px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs whitespace-nowrap">Kirim</button>
+                            </div>
+                            <p id="emailStatus" class="text-[11px] mt-2 hidden"></p>
+                        </div>
+                    @endif
+
                     <a href="{{ route('photobooth.index') }}" class="w-full py-2 text-center text-xs text-slate-400 hover:text-white block transition-colors">
                         <i class="fa-solid fa-house"></i> Kembali ke Menu Utama
                     </a>
@@ -65,6 +81,47 @@
 
 @section('scripts')
 <script>
+    @if($setting->enable_email)
+        const btnSendEmail = document.getElementById('btnSendEmail');
+        const emailInput = document.getElementById('emailInput');
+        const emailStatus = document.getElementById('emailStatus');
+        const CSRF = "{{ csrf_token() }}";
+
+        function showEmailStatus(msg, ok) {
+            emailStatus.textContent = msg;
+            emailStatus.className = 'text-[11px] mt-2 ' + (ok ? 'text-emerald-400' : 'text-rose-400');
+            emailStatus.classList.remove('hidden');
+        }
+
+        if (btnSendEmail) {
+            btnSendEmail.addEventListener('click', async () => {
+                const email = emailInput.value.trim();
+                if (!email) { showEmailStatus('Masukkan alamat email.', false); return; }
+                btnSendEmail.disabled = true;
+                btnSendEmail.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                try {
+                    const res = await fetch("{{ route('photobooth.email', ['token' => $session->session_token]) }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': CSRF,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ email, _token: CSRF })
+                    });
+                    const data = await res.json();
+                    showEmailStatus(data.message, data.success);
+                    if (data.success) emailInput.value = '';
+                } catch (e) {
+                    showEmailStatus('Gagal menghubungi server.', false);
+                } finally {
+                    btnSendEmail.disabled = false;
+                    btnSendEmail.textContent = 'Kirim';
+                }
+            });
+        }
+    @endif
+
     function printOnlyPhoto() {
         const img = document.getElementById('mainResultImage');
         if (!img || !img.src) {
