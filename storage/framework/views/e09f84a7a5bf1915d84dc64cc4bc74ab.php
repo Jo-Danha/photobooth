@@ -44,8 +44,8 @@
         <!-- KOLOM KIRI (2 Kolom): PENGATURAN UTAMA -->
         <div class="lg:col-span-2 space-y-8">
 
-            <!-- 1. KONTROL MODE PEMBAYARAN -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+<!-- 1. KONTROL MODE PEMBAYARAN -->
+        <div id="sec-payment" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
                     <i class="fa-solid fa-credit-card text-emerald-400"></i>
                     <span>1. Status & Sistem Pembayaran (QRIS / Mode Event Gratis)</span>
@@ -201,8 +201,119 @@
                 </form>
             </div>
 
-            <!-- 1B. GOOGLE DRIVE & UNDUHAN (QR FOTO) -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <!-- 1E. TAMPILAN BOOTH — MODE / UKURAN / LAYOUT YANG DITAMPILKAN -->
+            <?php
+                $visibleIds = $setting->layout_visible_ids ?? [];
+            ?>
+            <div id="sec-display" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-tv text-brand-400"></i>
+                    <span>1E. Tampilan Booth di Layar — Pilih Template yang Tampil</span>
+                </h2>
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                    Atur cara halaman <b>"choose your layout"</b> tampil di layar booth publik: mode <b>Slideshow</b> (geser kanan-kiri dengan tombol ← →) atau <b>Grid</b> (rapi berjajar rata), pilih ukuran kartu, lalu centang layout mana yang ditampilkan. Semua yang tidak dicentang otomatis disembunyikan.
+                </p>
+                <form action="<?php echo e(route('admin.settings.update')); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
+
+                    <!-- Mode tampilan -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label class="relative flex cursor-pointer rounded-xl border-2 p-4 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-950/30 <?php echo e(($setting->layout_display_mode ?? 'slideshow') === 'slideshow' ? 'border-brand-500 bg-brand-950/30' : 'border-slate-700 bg-slate-950'); ?>">
+                            <input type="radio" name="layout_display_mode" value="slideshow" class="sr-only" <?php echo e(($setting->layout_display_mode ?? 'slideshow') === 'slideshow' ? 'checked' : ''); ?>>
+                            <div class="flex gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-arrow-right-arrow-left text-brand-400"></i></div>
+                                <div>
+                                    <div class="text-sm font-bold text-white">Slideshow</div>
+                                    <div class="text-[11px] text-slate-400">Satu baris ke samping, geser dengan tombol ← →. Rapi & hemat layar (ala photobooth-io).</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="relative flex cursor-pointer rounded-xl border-2 p-4 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-950/30 <?php echo e(($setting->layout_display_mode ?? 'slideshow') === 'grid' ? 'border-emerald-500 bg-emerald-950/30' : 'border-slate-700 bg-slate-950'); ?>">
+                            <input type="radio" name="layout_display_mode" value="grid" class="sr-only" <?php echo e(($setting->layout_display_mode ?? 'slideshow') === 'grid' ? 'checked' : ''); ?>>
+                            <div class="flex gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-table-cells-large text-emerald-400"></i></div>
+                                <div>
+                                    <div class="text-sm font-bold text-white">Grid Rapi</div>
+                                    <div class="text-[11px] text-slate-400">Semua kartu terlihat sekaligus, disusun berjajar rata & proporsional, muat satu layar.</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="relative flex cursor-pointer rounded-xl border-2 p-4 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-950/30 <?php echo e(($setting->layout_display_mode ?? 'slideshow') === 'auto' ? 'border-amber-500 bg-amber-950/30' : 'border-slate-700 bg-slate-950'); ?>">
+                            <input type="radio" name="layout_display_mode" value="auto" class="sr-only" <?php echo e(($setting->layout_display_mode ?? 'slideshow') === 'auto' ? 'checked' : ''); ?>>
+                            <div class="flex gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i></div>
+                                <div>
+                                    <div class="text-sm font-bold text-white">Otomatis</div>
+                                    <div class="text-[11px] text-slate-400">Kecil = grid, banyak = slideshow. Sistem memilih yang paling pas agar muat satu layar.</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Ukuran kartu -->
+                    <div class="mt-4 p-4 rounded-xl border border-slate-800 bg-slate-950">
+                        <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-3">Ukuran Kartu Preview</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <?php $sizes = ['small' => ['Small • Kompak', 'Banyak layout muat, pas untuk tablet kecil', 'fa-compress'], 'medium' => ['Medium • Standar', 'Seimbang & jelas, rekomendasi Full HD', 'fa-maximize'], 'large' => ['Large • Besar', 'Dominan & mudah dipilih dari kejauhan', 'fa-expand']]; ?>
+                            <?php $__currentLoopData = $sizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => [$label, $desc, $icon]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <label class="relative flex cursor-pointer rounded-xl border-2 p-3 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-950/30 <?php echo e(($setting->layout_display_size ?? 'medium') === $key ? 'border-brand-500 bg-brand-950/30' : 'border-slate-700 bg-slate-950'); ?>">
+                                <input type="radio" name="layout_display_size" value="<?php echo e($key); ?>" class="sr-only" <?php echo e(($setting->layout_display_size ?? 'medium') === $key ? 'checked' : ''); ?>>
+                                <div class="flex gap-2.5">
+                                    <div class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center shrink-0"><i class="fa-solid <?php echo e($icon); ?> text-brand-400"></i></div>
+                                    <div>
+                                        <div class="text-xs font-bold text-white"><?php echo e($label); ?></div>
+                                        <div class="text-[10px] text-slate-500"><?php echo e($desc); ?></div>
+                                    </div>
+                                </div>
+                            </label>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </div>
+                    </div>
+
+                    <!-- Auto-scroll slideshow -->
+                    <div class="mt-4 p-4 rounded-xl border border-slate-800 bg-slate-950">
+                        <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-3">Auto-scroll Slideshow (Mode Demonstrasi Booth)</label>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <label class="flex items-center gap-2 text-xs text-slate-200 cursor-pointer">
+                                <input type="hidden" name="layout_auto_scroll" value="0">
+                                <input type="checkbox" name="layout_auto_scroll" value="1" <?php echo e($setting->layout_auto_scroll ? 'checked' : ''); ?> class="rounded border-slate-700 text-brand-600">
+                                <i class="fa-solid fa-circle-play text-brand-400"></i>
+                                Aktifkan auto-scroll
+                            </label>
+                            <label class="flex items-center gap-2 text-xs text-slate-200">
+                                <span class="text-slate-400">Geser otomatis tiap</span>
+                                <input type="number" name="layout_auto_scroll_interval" min="2" max="60" value="<?php echo e($setting->layout_auto_scroll_interval ?? 5); ?>" class="w-20 bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-1.5 text-center focus:border-brand-500">
+                                <span class="text-slate-400">detik</span>
+                            </label>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-2">Slide akan bergeser sendiri ke kanan (loop) agar tampilan booth hidup. Berlaku untuk mode Slideshow; berhenti bila admin/lock aktif atau pengguna menyentuh layar.</p>
+                    </div>
+
+                    <!-- Daftar layout yg ditampilkan -->
+                    <div class="mt-4 p-4 rounded-xl border border-slate-800 bg-slate-950">
+                        <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1">Layout yang Ditampilkan di Booth</label>
+                        <p class="text-[11px] text-slate-500 mb-3">Kosongkan semua (tidak ada centang) = tampilkan SEMUA layout.</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                            <?php $__currentLoopData = $packages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pkg): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <label class="flex items-center gap-2 text-xs text-slate-200 cursor-pointer bg-slate-900 rounded-lg px-2.5 py-2 border border-slate-800 hover:border-brand-700">
+                                <input type="checkbox" name="layout_visible_ids[]" value="<?php echo e($pkg['id']); ?>" <?php echo e(in_array($pkg['id'], $visibleIds) ? 'checked' : ''); ?> class="rounded border-slate-700 text-brand-600">
+                                <img src="<?php echo e(asset('layout-previews/'.$pkg['id'].'.png')); ?>" alt="" class="w-6 h-auto rounded object-cover border border-slate-700" onerror="this.style.display='none'">
+                                <span class="truncate"><?php echo e($pkg['name']); ?></span>
+                            </label>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-4">
+                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-lg flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan Tampilan Booth
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+<!-- 1B. GOOGLE DRIVE & UNDUHAN (QR FOTO) -->
+        <div id="sec-gdrive" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
                     <i class="fa-brands fa-google-drive text-emerald-400"></i>
                     <span>1B. Google Drive & Unduhan Foto (QR Otomatis)</span>
@@ -369,7 +480,7 @@
             </div>
 
             <!-- 1D. MODE OPERASIONAL — MANDIRI vs MANUAL (WEDDING) -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div id="sec-mode" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
                     <i class="fa-solid fa-people-group text-brand-400"></i>
                     <span>1D. Mode Operasional — Mandiri (QRIS) vs Manual (Wedding Gratis)</span>
@@ -418,7 +529,7 @@
             </div>
 
             <!-- 1C. PREVIEW LAYOUT — EDIT GAMBAR CONTOH -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div id="sec-preview" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
                     <i class="fa-solid fa-images text-brand-400"></i>
                     <span>1C. Preview Layout — Edit Gambar Contoh (Pilih Format & Layout)</span>
@@ -447,7 +558,7 @@
             </div>
 
             <!-- 2. KALIBRASI KAMERA & ISO HARDWARE -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div id="sec-camera" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
                     <i class="fa-solid fa-sliders text-brand-400"></i>
                     <span>2. Kalibrasi Kamera & Sensor (ISO, Brightness, Saturation)</span>
@@ -533,7 +644,7 @@
             </div>
 
             <!-- 3. MODE KUNCI (KIOSK LOCK) & KREDENSIAL ADMIN -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div id="sec-lock" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
                     <i class="fa-solid fa-lock text-amber-400"></i>
                     <span>3. Mode Kunci (Kiosk Lock) & Kredensial Admin</span>
@@ -705,7 +816,7 @@
             </div>
 
             <!-- 4. SUASANA BOOTH & MODE EVENT -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div id="sec-ambience" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
                     <i class="fa-solid fa-wand-magic-sparkles text-brand-400"></i>
                     <span>4. Suasana Booth & Mode Event</span>
@@ -750,7 +861,7 @@
                                 <?php endif; ?>
                             </div>
                             <input type="file" name="bg_music" accept="audio/mpeg,audio/wav,audio/ogg" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700">
-                            <span class="text-[10px] text-slate-500 mt-1 block">Maks 10 MB. Diputar otomatis di layar booth (mute-able).</span>
+                            <span class="text-[10px] text-slate-500 mt-1 block">Maks 10 MB. Diputar otomatis di layar booth (mute-able). BGM bawaan: "Carefree" by Kevin MacLeod (incompetech.com, CC BY 3.0).</span>
                         </div>
 
                         <!-- Virtual Background / Green Screen -->
@@ -811,9 +922,29 @@
             </div>
         </div>
 
-        <!-- KOLOM KANAN (1 Kolom): UPLOAD FRAME BERGAMBAR -->
+        <!-- KOLOM KANAN (1 Kolom): NAVIGASI + UPLOAD FRAME BERGAMBAR -->
         <div class="space-y-8">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <!-- Sidebar Navigasi Bagian (jangkar, tetap terlihat saat scroll) -->
+            <div class="lg:sticky lg:top-20 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <h2 class="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2 mb-3 border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-bars text-brand-400"></i>
+                    <span>Menu Cepat</span>
+                </h2>
+                <nav class="space-y-1">
+                    <a href="#sec-payment" data-inav="sec-payment" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-solid fa-credit-card w-4 text-brand-400"></i> Pembayaran & Event</a>
+                    <a href="#sec-display" data-inav="sec-display" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-solid fa-tv w-4 text-brand-400"></i> Tampilan Booth di Layar</a>
+                    <a href="#sec-mode" data-inav="sec-mode" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-solid fa-people-group w-4 text-brand-400"></i> Mode Operasional</a>
+                    <a href="#sec-camera" data-inav="sec-camera" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-solid fa-sliders w-4 text-brand-400"></i> Kalibrasi Kamera</a>
+                    <a href="#sec-lock" data-inav="sec-lock" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-solid fa-lock w-4 text-amber-400"></i> Mode Kunci Kiosk</a>
+                    <a href="#sec-ambience" data-inav="sec-ambience" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-solid fa-wand-magic-sparkles w-4 text-brand-400"></i> Suasana Booth & Event</a>
+                    <a href="#sec-preview" data-inav="sec-preview" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-solid fa-images w-4 text-brand-400"></i> Preview Layout</a>
+                    <a href="#sec-gdrive" data-inav="sec-gdrive" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-brands fa-google-drive w-4 text-emerald-400"></i> Google Drive</a>
+                    <a href="#sec-upload" data-inav="sec-upload" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-solid fa-arrow-up-from-bracket w-4 text-brand-400"></i> Tambah Template Frame</a>
+                    <a href="#sec-frames" data-inav="sec-frames" class="inav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-brand-950/50 hover:text-brand-300 border border-transparent transition-all"><i class="fa-solid fa-layer-group w-4 text-brand-400"></i> Koleksi Frame Aktif</a>
+                </nav>
+            </div>
+
+            <div id="sec-upload" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
                     <i class="fa-solid fa-image text-brand-400"></i>
                     <span>Tambah Template Frame Bergambar</span>
@@ -908,7 +1039,7 @@
             </div>
 
             <!-- Daftar Template Frame Aktif -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div id="sec-frames" class="scroll-mt-24 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h2 class="text-sm font-bold text-white mb-3 flex items-center justify-between border-b border-slate-800 pb-2">
                     <span>Koleksi Frame Aktif (<?php echo e(count($customFrames)); ?>)</span>
                 </h2>
@@ -1033,6 +1164,34 @@
             }
         });
     }
+
+    // Sidebar navigasi: sorot bagian aktif saat scroll + scroll halus saat klik
+    const inavLinks = document.querySelectorAll('.inav-link');
+    const inavSections = Array.from(inavLinks).map(a => document.getElementById(a.dataset.inav)).filter(Boolean);
+    function updateINavActive() {
+        const marker = 120;
+        let current = inavSections[0];
+        inavSections.forEach(sec => { if (sec && sec.getBoundingClientRect().top <= marker) current = sec; });
+        inavLinks.forEach(a => {
+            const active = current && a.dataset.inav === current.id;
+            a.classList.toggle('bg-brand-950/50', active);
+            a.classList.toggle('text-brand-300', active);
+            a.classList.toggle('border-brand-700/60', active);
+            if (active) a.classList.add('text-brand-300');
+        });
+    }
+    window.addEventListener('scroll', updateINavActive, { passive: true });
+    window.addEventListener('resize', updateINavActive);
+    setTimeout(updateINavActive, 300);
+    inavLinks.forEach(a => {
+        a.addEventListener('click', (e) => {
+            const sec = document.getElementById(a.dataset.inav);
+            if (!sec) return;
+            e.preventDefault();
+            const y = sec.getBoundingClientRect().top + window.scrollY - 88;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        });
+    });
 </script>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\xampp\htdocs\photobooth\resources\views/admin/settings.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\xampp\htdocs\photobooth\resources\views\admin\settings.blade.php ENDPATH**/ ?>

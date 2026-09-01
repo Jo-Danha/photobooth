@@ -27,13 +27,15 @@
     <script src="<?php echo e(asset('js/i18n.js')); ?>"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Cegah halaman melebar kesamping (mobile/tablet) */
+        html, body { max-width: 100vw; overflow-x: hidden; overscroll-behavior-x: none; }
     </style>
     <?php echo $__env->yieldContent('styles'); ?>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
     <?php if(!($hideChrome ?? false)): ?>
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-2 min-w-0 flex-wrap max-sm:h-auto max-sm:py-2">
             <a href="<?php echo e(route('photobooth.index')); ?>" id="boothLogo" class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
                     <i class="fa-solid fa-camera-retro text-white text-lg"></i>

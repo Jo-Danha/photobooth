@@ -24,7 +24,34 @@ class PhotoboothController extends Controller
             return $pkg;
         });
 
-        return view('photobooth.index', compact('packages', 'setting'));
+        // Admin bisa memilih layout mana yg tampil (kosong = semua)
+        $visibleIds = $setting->layout_visible_ids ?? [];
+        if (!empty($visibleIds)) {
+            $packages = $packages->filter(function ($pkg) use ($visibleIds) {
+                return in_array($pkg['id'], $visibleIds);
+            })->values();
+        }
+
+        $layoutDisplayMode = ($setting->layout_display_mode ?? 'slideshow') === 'auto'
+            ? ($packages->count() <= 9 ? 'grid' : 'slideshow')
+            : ($setting->layout_display_mode ?? 'slideshow');
+        $layoutDisplaySize = $setting->layout_display_size ?? 'medium';
+
+        $isLocked = (bool) ($setting->is_lock_mode ?? false);
+        $autoScroll = (bool) ($setting->layout_auto_scroll ?? false);
+        $autoScrollInterval = (int) ($setting->layout_auto_scroll_interval ?? 5);
+        $checkedLayout = $packages->first()['id'] ?? null;
+
+        return view('photobooth.index', compact(
+            'packages',
+            'setting',
+            'layoutDisplayMode',
+            'layoutDisplaySize',
+            'isLocked',
+            'autoScroll',
+            'autoScrollInterval',
+            'checkedLayout'
+        ));
     }
 
     public function createSession(Request $request)
@@ -237,8 +264,12 @@ class PhotoboothController extends Controller
             ->get();
 
         // Tema dekoratif untuk layout bergambar (sesuai pilihan di halaman awal)
-        $themedLayouts = ['hearts', 'dog', 'vintage', 'solace', 'classic', 'with_love', 'holidays'];
+        $themedLayouts = ['hearts', 'dog', 'vintage', 'solace', 'classic', 'with_love', 'holidays', 'cat', 'bunny', 'fox', 'cool'];
+        // Layout AR terpadu: frameTheme 'ar' → hanya AR picker, tanpa dekorasi frame statis.
+        // 'ar' juga adalah AR-capable, jadi ditambahkan agar AR engine aktif di studio.
+        $arLayouts = ['hearts', 'dog', 'cat', 'bunny', 'fox', 'cool', 'ar'];
         $frameTheme = in_array($session->layout_type, $themedLayouts) ? $session->layout_type : 'none';
+        $isArLayout = in_array($session->layout_type, $arLayouts);
 
         // Ambil 1 frame PNG overlay yang cocok untuk di-composite ke canvas
         $customFrameUrl = null;
@@ -255,7 +286,7 @@ class PhotoboothController extends Controller
             : route('photobooth.download', ['token' => $session->session_token]);
 
         $hideChrome = true; // sembunyikan header/footer saat sesi foto (anti-salah-guna)
-        return view('photobooth.studio', compact('session', 'setting', 'customFrames', 'frameTheme', 'customFrameUrl', 'remainingSeconds', 'downloadUrl', 'hideChrome'));
+        return view('photobooth.studio', compact('session', 'setting', 'customFrames', 'frameTheme', 'isArLayout', 'customFrameUrl', 'remainingSeconds', 'downloadUrl', 'hideChrome'));
     }
 
     public function checkRemainingTime($token)

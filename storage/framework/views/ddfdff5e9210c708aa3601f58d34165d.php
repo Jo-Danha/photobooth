@@ -14,12 +14,30 @@
         border-color: var(--brand, #c2337d);
         background: rgba(194,51,125,0.12);
     }
+    .ar-pick-btn {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 9999px;
+        border: 1px solid #475569;
+        background: #1e293b;
+        color: #cbd5e1;
+        transition: all 0.2s ease;
+    }
+    .ar-pick-btn:hover { border-color: var(--brand, #c2337d); color: #fff; }
+    .ar-pick-btn.active {
+        border-color: var(--brand, #c2337d);
+        background: rgba(194,51,125,0.18);
+        color: #fff;
+        box-shadow: 0 0 0 3px rgba(194,51,125,0.25);
+    }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <?php $__env->stopSection(); ?>
 
 <?php
-    $isEvent = $session->payment_method === 'FREE_EVENT_MODE';
+    $isEvent = in_array($session->payment_method, ['FREE_EVENT_MODE', 'FREE_MANUAL_MODE']);
 ?>
 
 <?php $__env->startSection('content'); ?>
@@ -32,14 +50,12 @@
                 <?php echo e($session->package_name); ?>
 
             </span>
+            <a href="<?php echo e(route('photobooth.index')); ?>" title="Ganti Template (Reset Pilihan)" class="text-xs font-bold px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 hover:text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-left"></i> <span class="hidden sm:inline">Ganti Template</span>
+            </a>
         </div>
 
         <div class="flex items-center gap-2">
-            <?php if($setting->bg_music_path): ?>
-            <button type="button" id="btnToggleMusic" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center justify-center" title="Musik Latar">
-                <i class="fa-solid fa-volume-high"></i>
-            </button>
-            <?php endif; ?>
             <span class="text-xs text-slate-400 font-medium">Sisa Waktu:</span>
             <div id="sessionTimerBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950 border border-emerald-700/60 text-emerald-400 font-mono font-bold text-sm">
                 <i class="fa-regular fa-clock animate-pulse"></i>
@@ -52,10 +68,6 @@
         <div id="sessionProgressBar" class="bg-gradient-to-r from-emerald-500 via-brand-500 to-amber-500 h-full w-full transition-all duration-1000"></div>
     </div>
 </div>
-
-<?php if($setting->bg_music_path): ?>
-<audio id="bgMusic" src="<?php echo e(asset($setting->bg_music_path)); ?>" loop preload="auto"></audio>
-<?php endif; ?>
 
 <div class="max-w-6xl mx-auto px-4 py-6">
     <div id="flashOverlay" class="fixed inset-0 bg-white pointer-events-none z-50 opacity-0"></div>
@@ -73,8 +85,17 @@
                 </select>
             </div>
 
-            <div class="relative bg-black rounded-xl overflow-hidden aspect-[4/3] flex items-center justify-center border border-slate-800">
-                <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
+            <div class="relative bg-black rounded-xl overflow-hidden flex items-center justify-center border border-slate-800" id="videoStage">
+                <div class="absolute inset-0 w-full h-full overflow-hidden transform -scale-x-100">
+                    <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                </div>
+                <canvas id="jeelizCanvas" style="position:fixed;top:-10000px;left:0;visibility:hidden" aria-hidden="true"></canvas>
+                <!-- Canvas AR face filter (MediaPipe) — sejajar dgn video, konten sdh dimirror -->
+                <canvas id="arCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+                <!-- Indikator wajah tidak terdeteksi -->
+                <div id="arStatus" class="absolute top-2 left-1/2 -translate-x-1/2 z-20 hidden text-[11px] font-semibold text-white bg-black/70 px-3 py-1 rounded-full border border-white/10">
+                    👋 Maju sedikit, wajah belum terdeteksi
+                </div>
                 <!-- Live theme overlay (dog ears / hearts) — mirip photobooth-io -->
                 <div id="themeLiveOverlay" class="absolute inset-0 pointer-events-none z-10 hidden flex flex-col items-center justify-between py-6">
                     <div id="themeLiveTop" class="text-3xl"></div>
@@ -85,6 +106,23 @@
                     <span id="countdownNumber" class="text-8xl sm:text-9xl font-black text-white drop-shadow-[0_0_25px_rgba(215,82,154,0.8)] animate-bounce">3</span>
                 </div>
             </div>
+
+            <?php if($isArLayout): ?>
+            <!-- Pilihan AR Filter (face overlay) — di bawah viewfinder, bisa dipilih antara beberapa filter -->
+            <div class="mt-3 flex flex-wrap items-center gap-2 z-10 rounded-xl bg-slate-950/60 border border-slate-800 px-3 py-2.5">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-brand-400">🎭 AR Filter:</span>
+                <div id="arPicker" class="flex flex-wrap items-center gap-1.5">
+                    <button type="button" data-ar="none" class="ar-pick-btn">Tanpa AR</button>
+                    <button type="button" data-ar="dog" class="ar-pick-btn">🐶 Dog</button>
+                    <button type="button" data-ar="cat" class="ar-pick-btn">🐱 Cat</button>
+                    <button type="button" data-ar="bunny" class="ar-pick-btn">🐰 Bunny</button>
+                    <button type="button" data-ar="fox" class="ar-pick-btn">🦊 Fox</button>
+                    <button type="button" data-ar="hearts" class="ar-pick-btn">💗 Hati</button>
+                    <button type="button" data-ar="cool" class="ar-pick-btn">🕶️ Cool</button>
+                    <button type="button" data-ar="dino" class="ar-pick-btn">🦖 Dino</button>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
                 <div class="text-xs text-slate-400">
@@ -132,7 +170,7 @@
                 </button>
             </div>
             <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 max-h-[580px] overflow-auto flex items-center justify-center">
-                <canvas id="photoStripCanvas" class="max-h-[540px] max-w-full rounded shadow-2xl"></canvas>
+                <canvas id="photoStripCanvas" class="w-auto h-auto max-h-[540px] max-w-full rounded shadow-2xl"></canvas>
             </div>
         </div>
 
@@ -277,6 +315,7 @@ document.addEventListener('visibilitychange', () => {
 <script>
     const layoutType = "<?php echo e($session->layout_type); ?>";
     const frameTheme = "<?php echo e($frameTheme); ?>";
+    const isArLayout = <?php echo e($isArLayout ? 'true' : 'false'); ?>;
     const customFrameUrl = <?php echo json_encode($customFrameUrl, 15, 512) ?>;
     const saveUrl = "<?php echo e(route('photobooth.studio.save', ['token' => $session->session_token])); ?>";
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -292,7 +331,6 @@ document.addEventListener('visibilitychange', () => {
     const enableCountdownSound = <?php echo e($setting->enable_countdown_sound ? 'true' : 'false'); ?>;
     const greenscreenEnabled = <?php echo e(($setting->enable_greenscreen && $setting->greenscreen_bg_path) ? 'true' : 'false'); ?>;
     const greenscreenBgUrl = <?php echo json_encode($setting->greenscreen_bg_path ? asset($setting->greenscreen_bg_path) : null, 15, 512) ?>;
-    const bgMusicUrl = <?php echo json_encode($setting->bg_music_path ? asset($setting->bg_music_path) : null, 15, 512) ?>;
     const lockPhotoShape = <?php echo e($setting->lock_photo_shape ? 'true' : 'false'); ?>;
 
     // Live theme overlay (dog/hearts/vintage dll) — tampil di viewfinder seperti photobooth-io
@@ -304,6 +342,10 @@ document.addEventListener('visibilitychange', () => {
         const themeMap = {
             dog: ['🐶 🐾', '🐾'],
             hearts: ['💗 ❤ 💗', '♡'],
+            cat: ['🐱 🐾', '🐟'],
+            bunny: ['🐰 🥕', '🌸'],
+            fox: ['🦊', '🍂'],
+            cool: ['🕶️ 😎', '✨'],
             vintage: ['est. ' + new Date().getFullYear(), ''],
             solace: ['✦', '✦'],
             classic: ['◆ ◆', '◆ ◆'],
@@ -325,6 +367,641 @@ document.addEventListener('visibilitychange', () => {
         }
     })();
 
+    // ============ AR FACE FILTER (MediaPipe FaceMesh, persis photobooth-io) ============
+    // Theme yang pakai AR sungguhan: dog (telinga+hidung+lidah), hearts (mata hati).
+    // Layout lain (vintage/solace/classic/with_love/holidays) cukup dekorasi frame biasa.
+    // Pengguna BISA mengganti AR lewat #arPicker (mutable).
+    let arTheme = ['dog', 'hearts', 'cat', 'bunny', 'fox', 'cool', 'dino'].includes(frameTheme)
+        ? frameTheme
+        : (isArLayout ? 'dog' : 'none');
+    let arEngineStarted = false;
+    const arCanvasEl = document.getElementById('arCanvas');
+    const arCtx2 = arCanvasEl ? arCanvasEl.getContext('2d') : null;
+    const arStatusEl = document.getElementById('arStatus');
+
+    function coverSrcRect(tw, th) {
+        // Bagian video (full-frame) yang terlihat berkat object-fit:cover ke target (tw,th)
+        const vw = video.videoWidth || 1280, vh = video.videoHeight || 960;
+        const ir = vw / vh, tr = tw / th;
+        let srcX = 0, srcY = 0, srcW = vw, srcH = vh;
+        if (ir > tr) { srcH = vh; srcW = vh * tr; srcX = (vw - srcW) / 2; }
+        else { srcW = vw; srcH = vw / tr; srcY = (vh - srcH) / 2; }
+        return { vw, vh, srcX, srcY, srcW, srcH };
+    }
+
+    let arMode = null; // 'mediapipe' | 'jeeliz'
+    function arPt(lm, i, geom, tw, th, mirror) {
+        if (arMode === 'jeeliz') {
+            // Pseudo-landmark disimpan dalam ruang piksel kanvas Jeeliz.
+            // Skala ulang ke target (arCanvas / offCanvas) supaya konsisten.
+            const jcw = jeelizCanvasEl ? jeelizCanvasEl.width : tw;
+            const jch = jeelizCanvasEl ? jeelizCanvasEl.height : th;
+            const px = lm[i].x * (tw / jcw);
+            const py = lm[i].y * (th / jch);
+            return { x: mirror ? tw - px : px, y: py };
+        }
+        // Peta landmark (normalized full-frame) ke kanvas target dgn crop cover + mirror
+        const px = (lm[i].x * geom.vw - geom.srcX) * (tw / geom.srcW);
+        const py = (lm[i].y * geom.vh - geom.srcY) * (th / geom.srcH);
+        return { x: mirror ? tw - px : px, y: py };
+    }
+
+    // Geometri wajah akurat: pusat + lebar dari jarak antar mata (bukan pipi yg rendah),
+    // plus rotasi & titik atas kepala. Ini kunci supaya kuping menempel dengan benar.
+    function arFaceGeom(lm, g, tw, th, mirror) {
+        const le = arPt(lm, 33, g, tw, th, mirror);   // sudut luar mata kiri
+        const re = arPt(lm, 263, g, tw, th, mirror);  // sudut luar mata kanan
+        const cx = (le.x + re.x) / 2;
+        const cy = (le.y + re.y) / 2;
+        const eyeD = Math.hypot(re.x - le.x, re.y - le.y);
+        const faceW = eyeD * 1.62;                    // lebar wajah perkiraan
+        // Roll dihitung dari koordinat NON-mirror lalu dinegasi saat mirror.
+        // (sama persis photobooth-io: `if (invertBtnState) rollAngle = -rollAngle`)
+        const leR = arPt(lm, 33, g, tw, th, false);
+        const reR = arPt(lm, 263, g, tw, th, false);
+        let roll = Math.atan2(reR.y - leR.y, reR.x - leR.x);
+        if (mirror) roll = -roll;
+        const nose = arPt(lm, 1, g, tw, th, mirror);
+        const headTop = { x: cx + Math.sin(roll) * faceW * 0.42, y: cy - Math.cos(roll) * faceW * 0.42 };
+        return { cx, cy, eyeD, faceW, roll, nose, headTop };
+    }
+
+    // Aset AR dog (PNG transparan) — pendekatan gambar seperti photobooth-io
+    const dogEarsImg = new Image();
+    dogEarsImg.src = "<?php echo e(asset('ar/dog-ears.png')); ?>";
+    const dogNoseImg = new Image();
+    dogNoseImg.src = "<?php echo e(asset('ar/dog-nose.png')); ?>";
+
+    function drawDogAR(ctx, tw, th, mirror) {
+        if (!faceResults || !faceResults.multiFaceLandmarks || !faceResults.multiFaceLandmarks.length) return;
+        const lm = faceResults.multiFaceLandmarks[0];
+        const g = coverSrcRect(tw, th);
+        // Landmark persis photobooth-io:
+        const noseTip  = arPt(lm, 1,   g, tw, th, mirror);  // ujung hidung
+        const lc       = arPt(lm, 234, g, tw, th, mirror);  // pipi kiri
+        const rc       = arPt(lm, 454, g, tw, th, mirror);  // pipi kanan
+        const le       = arPt(lm, 33,  g, tw, th, mirror);  // mata kiri
+        const re       = arPt(lm, 263, g, tw, th, mirror);  // mata kanan
+        const headPt   = arPt(lm, 10,  g, tw, th, mirror);  // puncak dahi
+
+        const cheekDx = rc.x - lc.x, cheekDy = rc.y - lc.y;
+        const faceW = Math.hypot(cheekDx, cheekDy);
+        if (faceW < 6) return;
+        // Roll dihitung dari koordinat NON-mirror, dinegasi saat mirror (photobooth-io)
+        const leR = arPt(lm, 33, g, tw, th, false);
+        const reR = arPt(lm, 263, g, tw, th, false);
+        let roll = Math.atan2(reR.y - leR.y, reR.x - leR.x);
+        if (mirror) roll = -roll;
+
+        // ---- Telinga (gambar PNG, diputar di puncak dahi) ----
+        if (dogEarsImg.complete && dogEarsImg.naturalWidth > 0) {
+            const aspect = dogEarsImg.naturalWidth / dogEarsImg.naturalHeight;
+            const earsW = faceW * 1.7;
+            const earsH = earsW / aspect;
+            ctx.save();
+            ctx.translate(headPt.x, headPt.y);
+            ctx.rotate(roll);
+            ctx.drawImage(dogEarsImg, -earsW / 2, -earsH * 0.55, earsW, earsH);
+            ctx.restore();
+        }
+
+        // ---- Hidung/moncong (gambar PNG di ujung hidung) ----
+        if (dogNoseImg.complete && dogNoseImg.naturalWidth > 0) {
+            const aspect = dogNoseImg.naturalWidth / dogNoseImg.naturalHeight;
+            const noseW = faceW * 1.2;
+            const noseH = noseW / aspect;
+            ctx.save();
+            ctx.translate(noseTip.x, noseTip.y);
+            ctx.rotate(roll);
+            ctx.drawImage(dogNoseImg, -noseW / 2, -noseH * 0.53, noseW, noseH);
+            ctx.restore();
+        }
+    }
+
+    function drawHeartsAR(ctx, tw, th, mirror) {
+        if (!faceResults || !faceResults.multiFaceLandmarks || !faceResults.multiFaceLandmarks.length) return;
+        const lm = faceResults.multiFaceLandmarks[0];
+        const F = arFaceGeom(lm, coverSrcRect(tw, th), tw, th, mirror);
+        const f = F.faceW;
+        if (f < 6) return;
+        const g = coverSrcRect(tw, th);
+        // pusat kedua mata dari sudut pojok (33/133 kiri, 362/263 kanan)
+        const eyes = [
+            { a: arPt(lm, 33, g, tw, th, mirror), b: arPt(lm, 133, g, tw, th, mirror) },
+            { a: arPt(lm, 362, g, tw, th, mirror), b: arPt(lm, 263, g, tw, th, mirror) }
+        ];
+        const size = f * 0.30;
+        eyes.forEach(e => {
+            const cx = (e.a.x + e.b.x) / 2;
+            const cy = (e.a.y + e.b.y) / 2;
+            ctx.beginPath();
+            drawHeartPath(ctx, cx, cy, size);
+            ctx.fillStyle = '#D6336C';
+            ctx.fill();
+            ctx.lineWidth = f * 0.02;
+            ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+            ctx.stroke();
+        });
+    }
+
+    function drawCatAR(ctx, tw, th, mirror) {
+        if (!faceResults || !faceResults.multiFaceLandmarks || !faceResults.multiFaceLandmarks.length) return;
+        const lm = faceResults.multiFaceLandmarks[0];
+        const F = arFaceGeom(lm, coverSrcRect(tw, th), tw, th, mirror);
+        const f = F.faceW;
+        if (f < 6) return;
+        const s = f * 0.55;
+
+        // ---- Telinga kucing segitiga (hitam + pink) di atas kepala ----
+        function catEar(dir) {
+            ctx.save();
+            ctx.translate(F.cx + dir * f * 0.30, F.headTop.y - f * 0.06);
+            ctx.rotate(F.roll + dir * 0.40);
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.38, f * 0.10);
+            ctx.lineTo(0, -s * 0.85);
+            ctx.lineTo(s * 0.38, f * 0.10);
+            ctx.closePath();
+            ctx.fillStyle = '#3B2A1E';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.20, f * 0.02);
+            ctx.lineTo(0, -s * 0.55);
+            ctx.lineTo(s * 0.20, f * 0.02);
+            ctx.closePath();
+            ctx.fillStyle = '#F1A7B8';
+            ctx.fill();
+            ctx.restore();
+        }
+        catEar(-1);
+        catEar(1);
+
+        // ---- Kumis ----
+        ctx.strokeStyle = 'rgba(20,20,20,0.9)';
+        ctx.lineWidth = Math.max(1, f * 0.012);
+        const mx = F.nose.x, my = F.nose.y + f * 0.04;
+        for (const dir of [-1, 1]) {
+            for (let i = -1; i <= 1; i++) {
+                const wy = my + i * f * 0.10;
+                const wx = mx + dir * f * 0.10;
+                ctx.beginPath();
+                ctx.moveTo(wx, wy);
+                ctx.lineTo(wx + dir * f * 0.22, wy - i * f * 0.02);
+                ctx.stroke();
+            }
+        }
+
+        // ---- Hidung kecil + mulut (kucing) ----
+        ctx.save();
+        ctx.translate(F.nose.x, F.nose.y);
+        ctx.rotate(F.roll);
+        ctx.beginPath();
+        ctx.moveTo(-f * 0.04, f * 0.02);
+        ctx.lineTo(0, f * 0.05);
+        ctx.lineTo(f * 0.04, f * 0.02);
+        ctx.closePath();
+        ctx.fillStyle = '#E76F51';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(0, f * 0.12, f * 0.05, f * 0.04, 0, 0, Math.PI);
+        ctx.fillStyle = '#5B3A1E';
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawBunnyAR(ctx, tw, th, mirror) {
+        if (!faceResults || !faceResults.multiFaceLandmarks || !faceResults.multiFaceLandmarks.length) return;
+        const lm = faceResults.multiFaceLandmarks[0];
+        const F = arFaceGeom(lm, coverSrcRect(tw, th), tw, th, mirror);
+        const f = F.faceW;
+        if (f < 6) return;
+        const s = f * 0.55;
+
+        function bunnyEar(dir, tall) {
+            ctx.save();
+            ctx.translate(F.cx + dir * f * 0.30, F.headTop.y - f * 0.06);
+            ctx.rotate(F.roll + dir * 0.18);
+            ctx.beginPath();
+            ctx.ellipse(0, -s * tall * 0.62, s * 0.17, s * tall * 0.68, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#F7F3EF';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(0, -s * tall * 0.62, s * 0.085, s * tall * 0.48, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#F9C5D5';
+            ctx.fill();
+            ctx.restore();
+        }
+        bunnyEar(-1, 1.3);
+        bunnyEar(1, 1.3);
+
+        // ---- Hidung pink segitiga + gigi ----
+        ctx.save();
+        ctx.translate(F.nose.x, F.nose.y);
+        ctx.rotate(F.roll);
+        ctx.beginPath();
+        ctx.moveTo(-f * 0.05, 0);
+        ctx.lineTo(0, f * 0.05);
+        ctx.lineTo(f * 0.05, 0);
+        ctx.closePath();
+        ctx.fillStyle = '#F284A8';
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(-f * 0.03, f * 0.05, f * 0.06, f * 0.09);
+        ctx.restore();
+    }
+
+    function drawFoxAR(ctx, tw, th, mirror) {
+        if (!faceResults || !faceResults.multiFaceLandmarks || !faceResults.multiFaceLandmarks.length) return;
+        const lm = faceResults.multiFaceLandmarks[0];
+        const F = arFaceGeom(lm, coverSrcRect(tw, th), tw, th, mirror);
+        const f = F.faceW;
+        if (f < 6) return;
+        const s = f * 0.55;
+
+        function foxEar(dir) {
+            ctx.save();
+            ctx.translate(F.cx + dir * f * 0.30, F.headTop.y - f * 0.06);
+            ctx.rotate(F.roll + dir * 0.42);
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.38, f * 0.12);
+            ctx.lineTo(0, -s * 0.88);
+            ctx.lineTo(s * 0.38, f * 0.12);
+            ctx.closePath();
+            ctx.fillStyle = '#E8833A';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.20, f * 0.04);
+            ctx.lineTo(0, -s * 0.60);
+            ctx.lineTo(s * 0.20, f * 0.04);
+            ctx.closePath();
+            ctx.fillStyle = '#FBF0E4';
+            ctx.fill();
+            ctx.restore();
+        }
+        foxEar(-1);
+        foxEar(1);
+
+        // ---- Moncong bawah putih membulat ----
+        ctx.save();
+        ctx.translate(F.nose.x, F.nose.y + f * 0.15);
+        ctx.rotate(F.roll);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, f * 0.20, f * 0.16, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,248,240,0.92)';
+        ctx.fill();
+        ctx.restore();
+
+        // ---- Hidung gelap + mulut ----
+        ctx.save();
+        ctx.translate(F.nose.x, F.nose.y);
+        ctx.rotate(F.roll);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, f * 0.065, f * 0.05, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#2A2019';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(f * 0.10, f * 0.10, f * 0.045, 0, Math.PI);
+        ctx.fillStyle = '#C2185B';
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawCoolAR(ctx, tw, th, mirror) {
+        if (!faceResults || !faceResults.multiFaceLandmarks || !faceResults.multiFaceLandmarks.length) return;
+        const lm = faceResults.multiFaceLandmarks[0];
+        const F = arFaceGeom(lm, coverSrcRect(tw, th), tw, th, mirror);
+        const f = F.faceW;
+        if (f < 6) return;
+        const roll = F.roll;
+        const s = f * 0.48;
+
+        ctx.save();
+        ctx.translate(F.cx, F.cy);
+        ctx.rotate(roll);
+        // lensa kiri & kanan
+        const lensW = s * 0.45, lensH = s * 0.30;
+        for (const dir of [-1, 1]) {
+            const cx = dir * s * 0.36;
+            ctx.beginPath();
+            ctx.ellipse(cx, 0, lensW, lensH, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(15,15,20,0.95)';
+            ctx.fill();
+            ctx.lineWidth = f * 0.035;
+            ctx.strokeStyle = '#1F1F28';
+            ctx.stroke();
+            // kilau
+            ctx.save();
+            ctx.beginPath();
+            ctx.ellipse(cx - lensW * 0.25, -lensH * 0.2, lensW * 0.22, lensH * 0.16, -0.4, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.fill();
+            ctx.restore();
+        }
+        // jembatan hidung
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.12, 0);
+        ctx.lineTo(s * 0.12, 0);
+        ctx.lineWidth = f * 0.03;
+        ctx.strokeStyle = '#1F1F28';
+        ctx.stroke();
+        // gagang
+        for (const dir of [-1, 1]) {
+            ctx.beginPath();
+            ctx.moveTo(dir * s * 0.62, 0);
+            ctx.lineTo(dir * s * 0.86, f * 0.06);
+            ctx.lineWidth = f * 0.028;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#1F1F28';
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // ---- Alis + senyum simpul ----
+        ctx.strokeStyle = '#222';
+        ctx.lineWidth = Math.max(2, f * 0.02);
+        const browY = F.cy - f * 0.20;
+        const le = arPt(lm, 33, coverSrcRect(tw, th), tw, th, mirror);
+        const re = arPt(lm, 263, coverSrcRect(tw, th), tw, th, mirror);
+        ctx.beginPath();
+        ctx.moveTo(le.x - s * 0.18, browY);
+        ctx.quadraticCurveTo(le.x, browY - f * 0.05, le.x + s * 0.18, browY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(re.x - s * 0.18, browY);
+        ctx.quadraticCurveTo(re.x, browY - f * 0.05, re.x + s * 0.18, browY);
+        ctx.stroke();
+    }
+
+    function drawDinoAR(ctx, tw, th, mirror) {
+        if (!faceResults || !faceResults.multiFaceLandmarks || !faceResults.multiFaceLandmarks.length) return;
+        const lm = faceResults.multiFaceLandmarks[0];
+        const F = arFaceGeom(lm, coverSrcRect(tw, th), tw, th, mirror);
+        const f = F.faceW;
+        if (f < 6) return;
+        const s = f * 0.60;
+
+        // ---- Dua tanduk kecil dinosaurus di puncak kepala ----
+        function dinoHorn(dir) {
+            ctx.save();
+            ctx.translate(F.cx + dir * f * 0.28, F.headTop.y - f * 0.10);
+            ctx.rotate(F.roll + dir * 0.22);
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.16, f * 0.08);
+            ctx.lineTo(0, -s * 0.78);
+            ctx.lineTo(s * 0.16, f * 0.08);
+            ctx.closePath();
+            ctx.fillStyle = '#3E7B27';
+            ctx.fill();
+            ctx.restore();
+        }
+        dinoHorn(-1);
+        dinoHorn(1);
+
+        // ---- Sisik puncak kepala (tiga segitiga kecil) ----
+        for (let i = 0; i < 3; i++) {
+            const off = (i - 1) * f * 0.16;
+            ctx.save();
+            ctx.translate(F.cx + off, F.headTop.y - f * 0.18);
+            ctx.rotate(F.roll);
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.10, f * 0.16);
+            ctx.lineTo(0, -s * 0.20);
+            ctx.lineTo(s * 0.10, f * 0.16);
+            ctx.closePath();
+            ctx.fillStyle = '#5EA83A';
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // ---- Moncong hijau menutupi hidung & mulut ----
+        ctx.save();
+        ctx.translate(F.nose.x, F.nose.y + f * 0.10);
+        ctx.rotate(F.roll);
+        ctx.beginPath();
+        ctx.ellipse(0, -f * 0.02, f * 0.30, f * 0.22, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#4C9A2F';
+        ctx.fill();
+        // lubang hidung
+        for (const dir of [-1, 1]) {
+            ctx.beginPath();
+            ctx.ellipse(dir * f * 0.12, -f * 0.02, f * 0.035, f * 0.03, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#2E5E1A';
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // ---- Mulut lebar (senyum dino) ----
+        ctx.save();
+        ctx.translate(F.nose.x, F.nose.y + f * 0.06);
+        ctx.rotate(F.roll);
+        ctx.beginPath();
+        ctx.arc(f * 0.02, 0, f * 0.20, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.strokeStyle = '#2E5E1A';
+        ctx.lineWidth = f * 0.045;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawAROverlay(ctx, tw, th, mirror) {
+        if (arTheme === 'dog') drawDogAR(ctx, tw, th, mirror);
+        else if (arTheme === 'hearts') drawHeartsAR(ctx, tw, th, mirror);
+        else if (arTheme === 'cat') drawCatAR(ctx, tw, th, mirror);
+        else if (arTheme === 'bunny') drawBunnyAR(ctx, tw, th, mirror);
+        else if (arTheme === 'fox') drawFoxAR(ctx, tw, th, mirror);
+        else if (arTheme === 'cool') drawCoolAR(ctx, tw, th, mirror);
+        else if (arTheme === 'dino') drawDinoAR(ctx, tw, th, mirror);
+    }
+
+    let faceResults = null;
+    let faceMesh = null;
+    let lastFaceTs = 0;
+    let smoothLm = null;
+    const jeelizCanvasEl = document.getElementById('jeelizCanvas');
+
+    // ---------- Boot AR utama: MediaPipe (presisi), fallback ke Jeeliz ----------
+    function ensureAREngine() {
+        if (arEngineStarted) return;
+        arEngineStarted = true;
+        if (typeof FaceMesh !== 'undefined') {
+            bootMediaPipeAR();
+        } else {
+            bootJeelizAR();
+        }
+    }
+
+    function setARTheme(theme) {
+        arTheme = theme || 'none';
+        document.querySelectorAll('#arPicker .ar-pick-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.ar === arTheme);
+        });
+        if (arTheme !== 'none') ensureAREngine();
+    }
+
+    if (arTheme !== 'none') ensureAREngine();
+
+    // ---- Wiring pilihan AR Filter ----
+    (function () {
+        const picker = document.getElementById('arPicker');
+        if (!picker) return;
+        document.querySelectorAll('#arPicker .ar-pick-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.ar === arTheme);
+            btn.addEventListener('click', () => setARTheme(btn.dataset.ar));
+        });
+    })();
+
+    function bootMediaPipeAR() {
+        arMode = 'mediapipe';
+        // Versi pinned classic build (@0.4.1633559619) — build lama & stabil dgn global FaceMesh.
+        // jangan pakai @latest: bisa berubah jadi ESM & global FaceMesh tidak tersedia.
+        faceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`
+        });
+        faceMesh.setOptions({
+            maxNumFaces: 2,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        faceMesh.onResults((results) => {
+            // smoothing agar posisi kuping tidak melompat-lompat
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length) {
+                lastFaceTs = performance.now();
+                const lm = results.multiFaceLandmarks[0];
+                if (smoothLm && lm.length === smoothLm.length) {
+                    const k = 0.55;
+                    for (let i = 0; i < lm.length; i++) {
+                        lm[i].x = smoothLm[i].x + (lm[i].x - smoothLm[i].x) * k;
+                        lm[i].y = smoothLm[i].y + (lm[i].y - smoothLm[i].y) * k;
+                        lm[i].z = smoothLm[i].z + (lm[i].z - smoothLm[i].z) * k;
+                    }
+                }
+                smoothLm = lm.map(p => ({ x: p.x, y: p.y, z: p.z }));
+            } else {
+                smoothLm = null;
+            }
+            faceResults = results;
+        });
+
+        function trackFaceAR(timestamp) {
+            if (video.readyState >= 2 && faceMesh && !window.__arBusy && timestamp - (window.__arLastTs || 0) >= 33) {
+                window.__arLastTs = timestamp;
+                window.__arBusy = true;
+                faceMesh.send({ image: video }).finally(() => { window.__arBusy = false; });
+            }
+            requestAnimationFrame(trackFaceAR);
+        }
+
+        faceMesh.initialize().then(() => {
+            trackFaceAR(performance.now());
+            startARLoop();
+        }).catch((e) => {
+            console.error('FaceMesh init error, fallback ke Jeeliz', e);
+            bootJeelizAR();
+        });
+    }
+
+    // ---------- Fallback AR: JeelizFaceFilter (pose-based, WebGL) ----------
+    function bootJeelizAR() {
+        if (arMode === 'jeeliz') return; // sudah jalan
+        arMode = 'jeeliz';
+        console.info('[AR] jeelizFaceFilter digunakan sebagai fallback');
+        if (typeof JEELIZFACEFILTER !== 'undefined') { bootJeelizAR2(); return; }
+        const s = document.createElement('script');
+        s.src = "<?php echo e(asset('ar/jeeliz/jeelizFaceFilter.js')); ?>";
+        s.onload = bootJeelizAR2;
+        s.onerror = () => {
+            if (arStatusEl) { arStatusEl.classList.remove('hidden'); arStatusEl.textContent = '⚠ AR unavailable'; }
+        };
+        document.head.appendChild(s);
+    }
+
+    function bootJeelizAR2() {
+        if (!jeelizCanvasEl) return;
+        const cw = arCanvasEl.clientWidth || 640, ch = arCanvasEl.clientHeight || 480;
+        jeelizCanvasEl.width = cw;
+        jeelizCanvasEl.height = ch;
+        const doInit = () => {
+            JEELIZFACEFILTER.init({
+                canvasId: 'jeelizCanvas',
+                NNCPath: "<?php echo e(asset('ar/jeeliz')); ?>/",
+                maxFacesDetected: 1,
+                followZRot: true,
+                videoSettings: { videoElement: video, facingMode: 'user' },
+                callbackReady: (errCode) => {
+                    if (errCode) { console.error('Jeeliz init error', errCode); return; }
+                    startARLoop();
+                },
+                callbackTrack: (detectState) => {
+                    const st = Array.isArray(detectState) ? detectState[0] : detectState;
+                    if (st && st.detected > 0.5) {
+                        lastFaceTs = performance.now();
+                        const lms = jeelizPoseToLandmarks(st, jeelizCanvasEl.width, jeelizCanvasEl.height);
+                        faceResults = { multiFaceLandmarks: [lms] };
+                    } else {
+                        faceResults = null;
+                        smoothLm = null;
+                    }
+                }
+            });
+        };
+        // Jeeliz (dgn videoElement) harus init SETELAH video loadeddata.
+        if (video.readyState >= 2) doInit();
+        else video.addEventListener('loadeddata', doInit, { once: true });
+    }
+
+    // Ubah pose Jeeliz (x,y,s,rz) menjadi pseudo-landmark (array 468, isi sesuai index yg dipakai)
+    // dalam ruang piksel kanvas Jeeliz, supaya semua draw function berjalan tanpa ubahan besar.
+    function jeelizPoseToLandmarks(st, W, H) {
+        // x,y ∈ [-1,1]; pusat deteksi. y naik ke atas → balik.
+        const cx = (st.x + 1) / 2 * W;
+        const cy = (1 - st.y) / 2 * H;
+        const faceW = Math.max(20, st.s * W * 0.9); // lebar wajah ≈ 0.9 × frame deteksi (s×W)
+        const roll = -st.rz || 0;
+        const cos = Math.cos(roll), sin = Math.sin(roll);
+        const rt = (dx, dy) => {
+            return {
+                x: cx + dx * cos - dy * sin,
+                y: cy + dx * sin + dy * cos
+            };
+        };
+        const p = [];
+        for (let i = 0; i < 468; i++) p.push({ x: 0, y: 0, z: 0 });
+        // Indeks yang dipakai oleh drawAROverlay:
+        p[1]   = rt(0, faceW * 0.20);    // ujung hidung
+        p[10]  = rt(0, -faceW * 0.45);   // puncak dahi
+        p[33]  = rt(-faceW * 0.24, -faceW * 0.02);  // mata kiri luar
+        p[133] = rt(-faceW * 0.13, -faceW * 0.02);  // mata kiri dalam
+        p[263] = rt(faceW * 0.24, -faceW * 0.02);   // mata kanan luar
+        p[362] = rt(faceW * 0.13, -faceW * 0.02);   // mata kanan dalam
+        p[234] = rt(-faceW * 0.42, faceW * 0.06);   // pipi kiri
+        p[454] = rt(faceW * 0.42, faceW * 0.06);    // pipi kanan
+        return p;
+    }
+
+    function startARLoop() {
+        function renderAR() {
+            if (arCanvasEl && arCtx2) {
+                const cw = arCanvasEl.clientWidth, ch = arCanvasEl.clientHeight;
+                if (cw > 0 && ch > 0 && (arCanvasEl.width !== cw || arCanvasEl.height !== ch)) {
+                    arCanvasEl.width = cw;
+                    arCanvasEl.height = ch;
+                }
+                if (arCanvasEl.width > 0) {
+                    arCtx2.clearRect(0, 0, arCanvasEl.width, arCanvasEl.height);
+                    drawAROverlay(arCtx2, arCanvasEl.width, arCanvasEl.height, true);
+                    // indikator deteksi wajah kecil biar pengguna tahu kapan harus maju
+                    if (arStatusEl) {
+                        const noFace = performance.now() - lastFaceTs > 700;
+                        arStatusEl.classList.toggle('hidden', !noFace);
+                    }
+                }
+            }
+            requestAnimationFrame(renderAR);
+        }
+        renderAR();
+    }
+
     // Konfigurasi layout
     const layoutConfig = {
         'strip_4':   { cols: 1, rows: 4 },
@@ -334,8 +1011,13 @@ document.addEventListener('visibilitychange', () => {
         'strip_e':   { cols: 2, rows: 2 },
         'grid_4':    { cols: 2, rows: 2 },
         'polaroid':  { cols: 1, rows: 1, polaroid: true },
+        'ar':        { cols: 1, rows: 4 },
         'hearts':    { cols: 1, rows: 4, theme: 'hearts' },
         'dog':       { cols: 1, rows: 4, theme: 'dog' },
+        'cat':       { cols: 1, rows: 4, theme: 'cat' },
+        'bunny':     { cols: 1, rows: 4, theme: 'bunny' },
+        'fox':       { cols: 1, rows: 4, theme: 'fox' },
+        'cool':      { cols: 1, rows: 4, theme: 'cool' },
         'vintage':   { cols: 1, rows: 4, theme: 'vintage' },
         'solace':    { cols: 1, rows: 4, theme: 'solace' },
         'classic':   { cols: 1, rows: 4, theme: 'classic' },
@@ -416,22 +1098,24 @@ document.addEventListener('visibilitychange', () => {
             console.error("Gagal membuka kamera:", e);
         }
     }
+
+    // Ukur panggung viewfinder mengikuti aspek video asli (CCTV 16:9, webcam 4:3, dll)
+    // supaya video tampil penuh TANPA mencrop / gepeng, dan AR sejajar piksel scara tepat.
+    const videoStage = document.getElementById('videoStage');
+    function fitVideoStage() {
+        const vw = video.videoWidth, vh = video.videoHeight;
+        if (!vw || !vh || !videoStage) return;
+        const stageW = videoStage.clientWidth || videoStage.offsetWidth;
+        if (!stageW) return;
+        const stageH = Math.max(150, Math.min(stageW / (vw / vh), 640));
+        videoStage.style.height = Math.round(stageH) + 'px';
+    }
+    video.addEventListener('loadedmetadata', fitVideoStage);
+    window.addEventListener('resize', fitVideoStage);
+    setTimeout(fitVideoStage, 1500);
+    setTimeout(fitVideoStage, 3000);
     initCamera();
     cameraSelect.addEventListener('change', () => initCamera(cameraSelect.value));
-
-    // ============ MUSIK LATAR ============
-    const bgMusic = document.getElementById('bgMusic');
-    const btnToggleMusic = document.getElementById('btnToggleMusic');
-    if (bgMusic) {
-        bgMusic.volume = 0.4;
-        bgMusic.play().catch(() => {});
-        if (btnToggleMusic) {
-            btnToggleMusic.addEventListener('click', () => {
-                if (bgMusic.paused) { bgMusic.play(); btnToggleMusic.innerHTML = '<i class="fa-solid fa-volume-high"></i>'; }
-                else { bgMusic.pause(); btnToggleMusic.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>'; }
-            });
-        }
-    }
 
     // ============ SOUND COUNTDOWN ============
     let audioCtx = null;
@@ -514,19 +1198,19 @@ document.addEventListener('visibilitychange', () => {
     const btnProceedToEdit = document.getElementById('btnProceedToEdit');
 
     async function snapSinglePhoto() {
+        const vw = video.videoWidth || 640, vh = video.videoHeight || 480;
+        // Kanvas foto memakai aspect RASIO ASLI video (tidak dipaksa 4:3) agar segambar dgn preview.
         const offCanvas = document.createElement('canvas');
         offCanvas.width = 640;
-        offCanvas.height = 480;
+        offCanvas.height = Math.round(640 * (vh / vw));
         const ctx = offCanvas.getContext('2d');
         ctx.translate(offCanvas.width, 0);
         ctx.scale(-1, 1);
-        // Capture dengan cover (crop) agar foto tidak gepeng/melar
-        const vw = video.videoWidth || 640, vh = video.videoHeight || 480;
-        const ir = vw / vh, tr = offCanvas.width / offCanvas.height;
-        let vdw, vdh, vdx, vdy;
-        if (ir > tr) { vdh = offCanvas.height; vdw = vdh * ir; vdx = (offCanvas.width - vdw) / 2; vdy = 0; }
-        else { vdw = offCanvas.width; vdh = vdw / ir; vdx = 0; vdy = (offCanvas.height - vdh) / 2; }
-        ctx.drawImage(video, vdx, vdy, vdw, vdh);
+        ctx.drawImage(video, 0, 0, offCanvas.width, offCanvas.height);
+
+        // AR face filter (dog/hearts) bakal terbakar ke foto — persis photobooth-io.
+        // Harus digambar di sini (sebelum dataUrl & greenscreen) agar ikut tersimpan.
+        drawAROverlay(ctx, offCanvas.width, offCanvas.height, false);
 
         let dataUrl = offCanvas.toDataURL('image/jpeg', 0.95);
 
@@ -966,6 +1650,42 @@ document.addEventListener('visibilitychange', () => {
             for (let i = 0; i < 4; i++) ctx.fillText('🐾', W / 2 + (i % 2 ? 40 : -40), 90 + i * 50);
             ctx.textBaseline = 'alphabetic';
         }
+        if (theme === 'cat') {
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.font = '30px Arial';
+            ctx.fillText('🐾', 22, 60); ctx.fillText('🐱', W - 22, 60);
+            ctx.fillText('🐟', 22, H - 70); ctx.fillText('🐾', W - 22, H - 70);
+            ctx.font = '24px Arial';
+            for (let i = 0; i < 8; i++) ctx.fillText('☆', W / 2 + (i % 2 ? 44 : -44), 80 + i * 36);
+            ctx.textBaseline = 'alphabetic';
+        }
+        if (theme === 'bunny') {
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.font = '30px Arial';
+            ctx.fillText('🐰', 22, 60); ctx.fillText('🥕', W - 22, 60);
+            ctx.fillText('🌸', 22, H - 70); ctx.fillText('🐰', W - 22, H - 70);
+            ctx.font = '20px Arial';
+            for (let i = 0; i < 8; i++) ctx.fillText('✨', W / 2 + (i % 2 ? 44 : -44), 90 + i * 30);
+            ctx.textBaseline = 'alphabetic';
+        }
+        if (theme === 'fox') {
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.font = '30px Arial';
+            ctx.fillText('🍂', 22, 60); ctx.fillText('🦊', W - 22, 60);
+            ctx.fillText('🦊', 22, H - 70); ctx.fillText('🍁', W - 22, H - 70);
+            ctx.font = '20px Arial';
+            for (let i = 0; i < 8; i++) ctx.fillText('◆', W / 2 + (i % 2 ? 44 : -44), 90 + i * 30);
+            ctx.textBaseline = 'alphabetic';
+        }
+        if (theme === 'cool') {
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.font = '30px Arial';
+            ctx.fillText('🎧', 22, 60); ctx.fillText('😎', W - 22, 60);
+            ctx.fillText('🕶️', 22, H - 70); ctx.fillText('🌟', W - 22, H - 70);
+            ctx.font = '20px Arial';
+            for (let i = 0; i < 8; i++) ctx.fillText('★', W / 2 + (i % 2 ? 44 : -44), 90 + i * 30);
+            ctx.textBaseline = 'alphabetic';
+        }
         if (theme === 'vintage') {
             ctx.strokeStyle = darkFrame ? '#D6C7A1' : '#8B6B3A';
             ctx.lineWidth = 3; ctx.strokeRect(14, 14, W - 28, H - 28);
@@ -1031,4 +1751,4 @@ document.addEventListener('visibilitychange', () => {
 </script>
 <?php $__env->stopSection(); ?>
 
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\xampp\htdocs\photobooth\resources\views/photobooth/studio.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\xampp\htdocs\photobooth\resources\views\photobooth\studio.blade.php ENDPATH**/ ?>

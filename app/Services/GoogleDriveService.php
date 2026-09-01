@@ -134,7 +134,6 @@ class GoogleDriveService
             $g->setAccessType('offline');
             $g->setApprovalPrompt('force');
             $g->setPrompt('consent');
-            $g->addScope(Drive::DRIVE_FILE);
             $g->addScope('https://www.googleapis.com/auth/drive.file');
             return $g->createAuthUrl();
         } catch (\Exception $e) {

@@ -53,6 +53,11 @@ class BoothSetting extends Model
         'bank_account',
         'footer_text',
         'booth_mode',
+        'layout_display_mode',
+        'layout_display_size',
+        'layout_visible_ids',
+        'layout_auto_scroll',
+        'layout_auto_scroll_interval',
     ];
 
     protected $casts = [
@@ -70,6 +75,8 @@ class BoothSetting extends Model
         'camera_saturation' => 'integer',
         'layout_prices' => 'array',
         'payment_methods' => 'array',
+        'layout_visible_ids' => 'array',
+        'layout_auto_scroll' => 'boolean',
     ];
 
     /**
@@ -177,6 +184,11 @@ class BoothSetting extends Model
                 'admin_pin' => '1234',
                 'admin_username' => 'admin',
                 'admin_password' => 'admin123',
+                'layout_display_mode' => 'slideshow',
+                'layout_display_size' => 'medium',
+                'layout_visible_ids' => [],
+                'layout_auto_scroll' => false,
+                'layout_auto_scroll_interval' => 5,
             ]
         );
     }

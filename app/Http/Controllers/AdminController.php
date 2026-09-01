@@ -104,6 +104,12 @@ class AdminController extends Controller
             'enable_email'         => 'nullable|boolean',
             'email_from_name'      => 'nullable|string|max:60',
             'booth_mode'           => 'nullable|string|in:mandiri,manual',
+            'layout_display_mode'  => 'nullable|string|in:slideshow,grid,auto',
+            'layout_display_size'  => 'nullable|string|in:small,medium,large',
+            'layout_visible_ids'   => 'nullable|array',
+            'layout_visible_ids.*' => 'nullable|string',
+            'layout_auto_scroll'   => 'nullable|boolean',
+            'layout_auto_scroll_interval' => 'nullable|integer|min:2|max:60',
         ]);
 
         // Merge-only: hanya perbarui field yang benar-benar dikirim form ini
@@ -149,6 +155,25 @@ class AdminController extends Controller
 
         if ($request->has('booth_mode')) {
             $data['booth_mode'] = $request->input('booth_mode');
+        }
+
+        // Tampilan booth (mode slideshow/grid, ukuran kartu, layout yg ditampilkan)
+        if ($request->has('layout_display_mode')) {
+            $data['layout_display_mode'] = $request->input('layout_display_mode');
+        }
+        if ($request->has('layout_display_size')) {
+            $data['layout_display_size'] = $request->input('layout_display_size');
+        }
+        if ($request->has('layout_visible_ids')) {
+            $selected = $request->input('layout_visible_ids', []);
+            $allowed = array_column(config('photobooth.packages'), 'id');
+            $data['layout_visible_ids'] = array_values(array_intersect($selected, $allowed));
+        }
+        if ($request->has('layout_auto_scroll')) {
+            $data['layout_auto_scroll'] = (bool) $request->input('layout_auto_scroll', 0);
+        }
+        if ($request->has('layout_auto_scroll_interval')) {
+            $data['layout_auto_scroll_interval'] = (int) $request->input('layout_auto_scroll_interval', 5);
         }
 
         // Harga per layout (hanya update bila form pembayaran mengirimkannya)
